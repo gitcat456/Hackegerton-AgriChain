@@ -57,48 +57,23 @@ def create_escrow_wallet() -> str:
     return f"G{secrets.token_hex(27).upper()}"
 
 
-def fund_escrow(escrow_address: str, amount: Decimal, source_wallet) -> Tuple[bool, str]:
+def fund_escrow(escrow_address: str, amount: Decimal, user) -> Tuple[bool, str]:
     """
-    Move funds from lending pool to escrow.
-    
-    PRODUCTION - Stellar SDK:
-    ```python
-    def fund_escrow_stellar(escrow_address, amount, source_keypair):
-        server = Server("https://horizon.stellar.org")
-        account = server.load_account(source_keypair.public_key)
-        
-        transaction = (
-            TransactionBuilder(
-                source_account=account,
-                network_passphrase=Network.PUBLIC_NETWORK_PASSPHRASE,
-                base_fee=100,
-            )
-            .append_payment_op(
-                destination=escrow_address,
-                asset=Asset.native(),  # XLM or custom asset
-                amount=str(amount)
-            )
-            .build()
-        )
-        
-        transaction.sign(source_keypair)
-        response = server.submit_transaction(transaction)
-        return True, response['hash']
-    ```
+    Move funds from user wallet to escrow.
     """
     from core.models import Transaction
     
     # Simulate transaction
-    if source_wallet.available_balance < amount:
+    if user.available_balance < amount:
         return False, "Insufficient funds"
     
-    source_wallet.balance -= amount
-    source_wallet.save()
+    user.wallet_balance -= amount
+    user.save()
     
     tx_hash = secrets.token_hex(32)
     
     Transaction.objects.create(
-        wallet=source_wallet,
+        user=user,
         transaction_type='escrow_lock',
         amount=-amount,
         stellar_tx_hash=tx_hash,
@@ -111,41 +86,6 @@ def fund_escrow(escrow_address: str, amount: Decimal, source_wallet) -> Tuple[bo
 def release_loan_milestone(loan, milestone_index: int) -> Tuple[bool, str, Decimal]:
     """
     Release a loan milestone to the borrower.
-    
-    PRODUCTION - Stellar Multi-sig:
-    - Escrow account would require multiple signatures
-    - Platform + verification service must sign
-    - Could use Stellar's Claimable Balances for conditional release
-    
-    ```python
-    def release_milestone_stellar(escrow_keypair, borrower_address, amount):
-        # Requires threshold signatures
-        # Platform signs after verification conditions met
-        
-        server = Server("https://horizon.stellar.org")
-        escrow_account = server.load_account(escrow_keypair.public_key)
-        
-        transaction = (
-            TransactionBuilder(
-                source_account=escrow_account,
-                network_passphrase=Network.PUBLIC_NETWORK_PASSPHRASE,
-                base_fee=100,
-            )
-            .append_payment_op(
-                destination=borrower_address,
-                asset=Asset.native(),
-                amount=str(amount)
-            )
-            .build()
-        )
-        
-        # Requires multiple signatures based on account thresholds
-        transaction.sign(escrow_keypair)
-        transaction.sign(platform_verification_keypair)
-        
-        response = server.submit_transaction(transaction)
-        return True, response['hash'], amount
-    ```
     """
     from core.models import Transaction
     
@@ -169,19 +109,19 @@ def release_loan_milestone(loan, milestone_index: int) -> Tuple[bool, str, Decim
     loan.amount_disbursed += release_amount
     
     if loan.status == 'approved':
-        loan.status = 'active'
+        loan.status = 'released'
     
     loan.save()
     
     # Credit borrower's wallet
-    borrower_wallet = loan.borrower.wallet
-    borrower_wallet.balance += release_amount
-    borrower_wallet.save()
+    borrower = loan.borrower
+    borrower.wallet_balance += release_amount
+    borrower.save()
     
     tx_hash = secrets.token_hex(32)
     
     Transaction.objects.create(
-        wallet=borrower_wallet,
+        user=borrower,
         transaction_type='loan_disbursement',
         amount=release_amount,
         reference_type='loan',
@@ -193,23 +133,19 @@ def release_loan_milestone(loan, milestone_index: int) -> Tuple[bool, str, Decim
     return True, tx_hash, release_amount
 
 
-def process_order_payment(order, buyer_wallet) -> Tuple[bool, str]:
+def process_order_payment(order, buyer) -> Tuple[bool, str]:
     """
     Lock buyer payment in escrow for an order.
-    
-    PRODUCTION:
-    - Create payment channel or claimable balance
-    - Funds locked until buyer confirmation or timeout
     """
     from core.models import Transaction
     
-    if buyer_wallet.available_balance < order.total_price:
+    if buyer.available_balance < order.total_price:
         return False, "Insufficient funds"
     
     # Lock funds in escrow
-    buyer_wallet.balance -= order.total_price
-    buyer_wallet.escrow_balance += order.total_price
-    buyer_wallet.save()
+    buyer.wallet_balance -= order.total_price
+    buyer.escrow_balance += order.total_price
+    buyer.save()
     
     # Create escrow address for order
     order.escrow_wallet_address = create_escrow_wallet()
@@ -221,7 +157,7 @@ def process_order_payment(order, buyer_wallet) -> Tuple[bool, str]:
     order.save()
     
     Transaction.objects.create(
-        wallet=buyer_wallet,
+        user=buyer,
         transaction_type='escrow_lock',
         amount=-order.total_price,
         reference_type='order',
@@ -237,26 +173,22 @@ def release_order_payment(order) -> Tuple[bool, str, Decimal, Decimal]:
     """
     Release payment from escrow to farmer after buyer confirms receipt.
     Auto-deducts loan repayment if farmer has active loan.
-    
-    Returns: (success, tx_hash, farmer_receives, loan_deduction)
-    
-    PRODUCTION:
-    - Stellar claimant conditions met
-    - Multi-sig release from escrow
-    - Automatic routing for loan repayment
     """
     from core.models import Transaction
     from loans.models import Loan, LoanRepayment
     
-    farmer = order.farmer
-    farmer_wallet = farmer.wallet
+    farmer = order.listing.farmer
     
     # Check for active loan requiring repayment
     active_loan = Loan.objects.filter(
         borrower=farmer,
-        status='active',
-        amount_repaid__lt=Decimal(str(order.total_price))  # Has outstanding balance
+        status='released',
+        amount_repaid__lt=models.F('amount_approved')  # Simplified check
     ).first()
+    
+    # Better check: compare repayment to total due
+    if active_loan and active_loan.amount_repaid >= active_loan.total_due:
+        active_loan = None
     
     loan_deduction = Decimal('0')
     
@@ -273,7 +205,7 @@ def release_order_payment(order) -> Tuple[bool, str, Decimal, Decimal]:
         if loan_deduction > 0:
             active_loan.amount_repaid += loan_deduction
             if active_loan.amount_repaid >= active_loan.total_due:
-                active_loan.status = 'completed'
+                active_loan.status = 'repaid'
                 active_loan.completed_at = timezone.now()
             active_loan.save()
             
@@ -284,14 +216,24 @@ def release_order_payment(order) -> Tuple[bool, str, Decimal, Decimal]:
                 source_order=order,
                 notes=f'Auto-deducted from sale of {order.listing.title}'
             )
+            
+            # Create Transaction for repayment
+            Transaction.objects.create(
+                user=farmer,
+                transaction_type='loan_repayment',
+                amount=-loan_deduction,
+                reference_type='loan',
+                reference_id=active_loan.id,
+                description=f'Auto-repayment from order {order.id}'
+            )
     
     # Calculate farmer's net payment
     farmer_receives = order.total_price - loan_deduction
     order.loan_deduction_amount = loan_deduction
     
     # Release funds to farmer
-    farmer_wallet.balance += farmer_receives
-    farmer_wallet.save()
+    farmer.wallet_balance += farmer_receives
+    farmer.save()
     
     # Update order status
     order.status = 'completed'
@@ -300,9 +242,9 @@ def release_order_payment(order) -> Tuple[bool, str, Decimal, Decimal]:
     
     tx_hash = secrets.token_hex(32)
     
-    # Record transaction
+    # Record transaction for payment
     Transaction.objects.create(
-        wallet=farmer_wallet,
+        user=farmer,
         transaction_type='sale_payment',
         amount=farmer_receives,
         reference_type='order',
@@ -311,10 +253,10 @@ def release_order_payment(order) -> Tuple[bool, str, Decimal, Decimal]:
         description=f'Payment received for {order.listing.title}. Loan deduction: {loan_deduction}'
     )
     
-    # Release escrow from buyer's account
-    buyer_wallet = order.buyer.wallet
-    buyer_wallet.escrow_balance -= order.total_price
-    buyer_wallet.save()
+    # Release escrow from buyer's account (buyer funds were already moved to escrow_balance)
+    buyer = order.buyer
+    buyer.escrow_balance -= order.total_price
+    buyer.save()
     
     return True, tx_hash, farmer_receives, loan_deduction
 
@@ -322,22 +264,18 @@ def release_order_payment(order) -> Tuple[bool, str, Decimal, Decimal]:
 def refund_order(order) -> Tuple[bool, str]:
     """
     Refund order - return escrowed funds to buyer.
-    
-    PRODUCTION:
-    - Escrow timeout or dispute resolution
-    - Claimable balance reclaim by buyer
     """
     from core.models import Transaction
     
     if order.status not in ['escrow_held', 'dispatched', 'disputed']:
         return False, "Order cannot be refunded in current state"
     
-    buyer_wallet = order.buyer.wallet
+    buyer = order.buyer
     
     # Return escrowed funds
-    buyer_wallet.escrow_balance -= order.total_price
-    buyer_wallet.balance += order.total_price
-    buyer_wallet.save()
+    buyer.escrow_balance -= order.total_price
+    buyer.wallet_balance += order.total_price
+    buyer.save()
     
     order.status = 'refunded'
     order.save()
@@ -345,7 +283,7 @@ def refund_order(order) -> Tuple[bool, str]:
     tx_hash = secrets.token_hex(32)
     
     Transaction.objects.create(
-        wallet=buyer_wallet,
+        user=buyer,
         transaction_type='escrow_release',
         amount=order.total_price,
         reference_type='order',

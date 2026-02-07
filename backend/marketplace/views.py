@@ -125,9 +125,6 @@ class OrderViewSet(viewsets.ModelViewSet):
     def pay(self, request, pk=None):
         """
         Process payment for order - locks funds in escrow.
-        
-        PRODUCTION: Would integrate with payment gateway
-        and create Stellar escrow account.
         """
         order = self.get_object()
         
@@ -136,9 +133,8 @@ class OrderViewSet(viewsets.ModelViewSet):
                 'error': f'Cannot pay for order in {order.status} status'
             }, status=400)
         
-        buyer_wallet = order.buyer.wallet
-        
-        success, tx_hash = process_order_payment(order, buyer_wallet)
+        # Pass user (who is the wallet)
+        success, tx_hash = process_order_payment(order, order.buyer)
         
         if not success:
             return Response({'error': tx_hash}, status=400)

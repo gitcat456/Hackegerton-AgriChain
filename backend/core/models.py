@@ -34,21 +34,31 @@ class UserManager(BaseUserManager):
 class User(AbstractBaseUser, PermissionsMixin):
     """
     Custom User model with role flags for Farmer, Buyer, and Admin.
-    Authentication is disabled for demo, but structure supports it.
+    Also includes Wallet and Farm details for simplified hackathon schema.
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField(unique=True)
     phone = models.CharField(max_length=20, blank=True)
     full_name = models.CharField(max_length=150)
     
-    # Role flags - users can have multiple roles
+    # Role flags
     is_farmer = models.BooleanField(default=False)
     is_buyer = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
     
-    # Farmer-specific fields
-    location = models.CharField(max_length=200, blank=True)
+    # Farmer Profile Fields (Merged from Farm model)
+    farm_name = models.CharField(max_length=200, blank=True)
+    farm_location = models.CharField(max_length=200, blank=True)
     farm_size_acres = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    main_crops = models.CharField(max_length=200, blank=True, help_text="Comma-separated list of main crops")
+    
+    # Wallet Fields (Merged from Wallet model)
+    wallet_address = models.CharField(max_length=56, blank=True, help_text="Stellar Public Key")
+    wallet_balance = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+    escrow_balance = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+    
+    # Generic Location
+    location = models.CharField(max_length=200, blank=True, null=True, default='')
     
     # Django auth fields
     is_active = models.BooleanField(default=True)
@@ -61,63 +71,27 @@ class User(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['full_name']
     
-    def __str__(self):
-        return f"{self.full_name} ({self.email})"
-    
-    def get_role_display(self):
-        roles = []
-        if self.is_farmer:
-            roles.append('Farmer')
-        if self.is_buyer:
-            roles.append('Buyer')
-        if self.is_admin:
-            roles.append('Admin')
-        return ', '.join(roles) if roles else 'No Role'
-
-
-class Wallet(models.Model):
-    """
-    Simulated Stellar wallet for each user.
-    
-    PRODUCTION: Replace with Stellar SDK integration
-    - public_key would be generated using stellar_sdk.Keypair.random()
-    - Transactions would be submitted to Stellar network
-    """
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='wallet')
-    
-    # Simulated Stellar public key (in production: real Stellar address)
-    public_key = models.CharField(max_length=56, unique=True, blank=True)
-    
-    # Balance in platform currency (simulating Stellar lumens or stablecoin)
-    balance = models.DecimalField(max_digits=15, decimal_places=2, default=0)
-    
-    # Funds currently held in escrow
-    escrow_balance = models.DecimalField(max_digits=15, decimal_places=2, default=0)
-    
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    
     def save(self, *args, **kwargs):
-        if not self.public_key:
+        if not self.wallet_address:
             # PRODUCTION: Use stellar_sdk.Keypair.random().public_key
-            self.public_key = f"G{secrets.token_hex(27).upper()}"
+            self.wallet_address = f"G{secrets.token_hex(27).upper()}"
         super().save(*args, **kwargs)
     
     def __str__(self):
-        return f"Wallet of {self.user.full_name}: {self.balance}"
+        role = "User"
+        if self.is_farmer: role = "Farmer"
+        elif self.is_buyer: role = "Buyer"
+        return f"{self.full_name} ({role}) - {self.email}"
     
     @property
     def available_balance(self):
         """Balance minus escrowed funds."""
-        return self.balance - self.escrow_balance
+        return self.wallet_balance - self.escrow_balance
 
 
 class Transaction(models.Model):
     """
-    Transaction history for wallet operations.
-    
-    PRODUCTION: Would reference actual Stellar transaction hashes.
+    Transaction history for user wallet operations.
     """
     TRANSACTION_TYPES = [
         ('deposit', 'Deposit'),
@@ -130,7 +104,7 @@ class Transaction(models.Model):
     ]
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name='transactions')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='transactions')
     
     transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPES)
     amount = models.DecimalField(max_digits=15, decimal_places=2)
@@ -147,12 +121,11 @@ class Transaction(models.Model):
     
     def save(self, *args, **kwargs):
         if not self.stellar_tx_hash:
-            # PRODUCTION: This would be real Stellar tx hash
             self.stellar_tx_hash = secrets.token_hex(32)
         super().save(*args, **kwargs)
     
     def __str__(self):
-        return f"{self.transaction_type}: {self.amount}"
+        return f"{self.transaction_type}: {self.amount} ({self.user.full_name})"
     
     class Meta:
         ordering = ['-created_at']

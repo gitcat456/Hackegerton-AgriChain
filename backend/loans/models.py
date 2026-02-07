@@ -1,10 +1,9 @@
 """
-Loans models - Lending Pool, Loans, and Repayments.
+Loans models - Loans and Repayments.
 
 PRODUCTION NOTES:
 - Escrow logic simulates Stellar smart contracts
-- Milestone-based release mimics multi-sig escrow
-- In production, use Stellar's SEP-0030 for escrow accounts
+- Single-escrow flow for hackathon simplicity
 """
 
 from django.db import models
@@ -13,43 +12,18 @@ import uuid
 from decimal import Decimal
 
 
-class LendingPool(models.Model):
-    """
-    Platform-managed lending pool that funds farmer loans.
-    In production, this would be backed by actual liquidity providers.
-    """
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=100, default="AgriChain Main Pool")
-    
-    total_balance = models.DecimalField(max_digits=15, decimal_places=2, default=0)
-    available_balance = models.DecimalField(max_digits=15, decimal_places=2, default=0)
-    reserved_balance = models.DecimalField(max_digits=15, decimal_places=2, default=0)
-    
-    # Interest rate configuration
-    base_interest_rate = models.DecimalField(max_digits=5, decimal_places=2, default=12.0)  # 12% base
-    min_interest_rate = models.DecimalField(max_digits=5, decimal_places=2, default=8.0)
-    max_interest_rate = models.DecimalField(max_digits=5, decimal_places=2, default=25.0)
-    
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    
-    def __str__(self):
-        return f"{self.name}: {self.available_balance} available"
-
-
 class Loan(models.Model):
     """
-    Farmer loan with escrow-based milestone release.
+    Simulated Farmer Loan.
     
-    PRODUCTION: Replace with Stellar escrow accounts
-    - Each loan creates a dedicated escrow account
-    - Milestone release requires multi-sig from platform + conditions met
+    State Machine:
+    REQUESTED -> APPROVED -> RELEASED -> REPAID
     """
     STATUS_CHOICES = [
-        ('pending', 'Pending Approval'),
+        ('requested', 'Requested'),
         ('approved', 'Approved'),
-        ('active', 'Active (Disbursed)'),
-        ('completed', 'Completed'),
+        ('released', 'Released (Active)'),
+        ('repaid', 'Repaid'),
         ('defaulted', 'Defaulted'),
         ('rejected', 'Rejected'),
     ]
@@ -60,20 +34,15 @@ class Loan(models.Model):
         on_delete=models.CASCADE,
         related_name='loans'
     )
-    lending_pool = models.ForeignKey(
-        LendingPool,
-        on_delete=models.PROTECT,
-        related_name='loans'
-    )
     
     # Loan terms
     amount_requested = models.DecimalField(max_digits=15, decimal_places=2)
     amount_approved = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
-    interest_rate = models.DecimalField(max_digits=5, decimal_places=2)
+    interest_rate = models.DecimalField(max_digits=5, decimal_places=2, default=12.0)
     term_months = models.IntegerField(default=6)
     
     # Status tracking
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='requested')
     
     # Credit assessment at time of application
     credit_score_at_application = models.DecimalField(max_digits=5, decimal_places=2, default=0)
@@ -85,15 +54,14 @@ class Loan(models.Model):
         related_name='loans'
     )
     
-    # Milestone-based disbursement
-    # Default milestones: Approval (30%), Mid-Growth (40%), Pre-Harvest (30%)
-    milestones = models.JSONField(default=list)
-    current_milestone = models.IntegerField(default=0)
-    
     # Escrow tracking
     escrow_wallet_address = models.CharField(max_length=56, blank=True)
     amount_disbursed = models.DecimalField(max_digits=15, decimal_places=2, default=0)
     amount_repaid = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+    
+    # Milestone Tracking
+    milestones = models.JSONField(default=list)
+    current_milestone = models.IntegerField(default=0)
     
     # Timestamps
     applied_at = models.DateTimeField(auto_now_add=True)
@@ -103,16 +71,6 @@ class Loan(models.Model):
     # Admin notes
     admin_notes = models.TextField(blank=True)
     
-    def save(self, *args, **kwargs):
-        # Set default milestones if not specified
-        if not self.milestones:
-            self.milestones = [
-                {"name": "Approval", "percentage": 30, "released": False, "released_at": None},
-                {"name": "Mid-Growth Verification", "percentage": 40, "released": False, "released_at": None},
-                {"name": "Pre-Harvest", "percentage": 30, "released": False, "released_at": None},
-            ]
-        super().save(*args, **kwargs)
-    
     def __str__(self):
         return f"Loan {self.id} - {self.borrower.full_name}: {self.amount_requested}"
     
@@ -120,7 +78,7 @@ class Loan(models.Model):
     def total_due(self):
         """Total amount due including interest."""
         if self.amount_approved:
-            interest = self.amount_approved * (self.interest_rate / 100)
+            interest = self.amount_approved * (self.interest_rate / Decimal('100.0'))
             return self.amount_approved + interest
         return Decimal('0')
     
@@ -128,14 +86,6 @@ class Loan(models.Model):
     def remaining_balance(self):
         """Outstanding balance."""
         return self.total_due - self.amount_repaid
-    
-    @property
-    def next_milestone(self):
-        """Get next unreleased milestone."""
-        for i, milestone in enumerate(self.milestones):
-            if not milestone.get('released'):
-                return i, milestone
-        return None, None
     
     class Meta:
         ordering = ['-applied_at']

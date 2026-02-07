@@ -165,122 +165,146 @@ const Navbar = () => {
 
                 {/* Right Side - Role & User */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    {/* Wallet Balance */}
-                    {currentUser?.wallet && (
-                        <Chip
-                            icon={<Wallet sx={{ color: 'inherit !important' }} />}
-                            label={`${Number(currentUser.wallet.balance).toLocaleString()} KES`}
-                            sx={{
-                                bgcolor: alpha('#fff', 0.15),
-                                color: 'white',
-                                fontWeight: 600,
-                                '& .MuiChip-icon': { color: 'white' },
-                            }}
-                        />
+                    {!currentUser ? (
+                        <>
+                            <Button
+                                color="inherit"
+                                onClick={() => navigate('/login')}
+                                sx={{ fontWeight: 600 }}
+                            >
+                                Login
+                            </Button>
+                            <Button
+                                variant="contained"
+                                color="secondary"
+                                onClick={() => navigate('/signup')}
+                                sx={{
+                                    fontWeight: 600,
+                                    boxShadow: 'none',
+                                    '&:hover': { boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }
+                                }}
+                            >
+                                Sign Up
+                            </Button>
+                        </>
+                    ) : (
+                        <>
+                            {/* Wallet Balance */}
+                            <Chip
+                                icon={<Wallet sx={{ color: 'inherit !important' }} />}
+                                label={`${Number(currentUser.wallet_balance || 0).toLocaleString()} KES`}
+                                sx={{
+                                    bgcolor: alpha('#fff', 0.15),
+                                    color: 'white',
+                                    fontWeight: 600,
+                                    '& .MuiChip-icon': { color: 'white' },
+                                }}
+                            />
+
+                            {/* Role Switcher */}
+                            <Chip
+                                icon={roleIcons[currentRole]}
+                                label={currentRole.charAt(0).toUpperCase() + currentRole.slice(1)}
+                                onClick={handleRoleClick}
+                                onDelete={handleRoleClick}
+                                deleteIcon={<KeyboardArrowDown />}
+                                sx={{
+                                    bgcolor: roleColors[currentRole],
+                                    color: 'white',
+                                    fontWeight: 600,
+                                    '& .MuiChip-icon': { color: 'white' },
+                                    '& .MuiChip-deleteIcon': { color: 'white' },
+                                    cursor: 'pointer',
+                                }}
+                            />
+                            <Menu
+                                anchorEl={roleAnchor}
+                                open={Boolean(roleAnchor)}
+                                onClose={() => setRoleAnchor(null)}
+                            >
+                                {['farmer', 'buyer', 'admin'].map((role) => (
+                                    <MenuItem
+                                        key={role}
+                                        onClick={() => handleRoleChange(role)}
+                                        selected={role === currentRole}
+                                    >
+                                        <ListItemIcon sx={{ color: roleColors[role] }}>
+                                            {roleIcons[role]}
+                                        </ListItemIcon>
+                                        <ListItemText>{role.charAt(0).toUpperCase() + role.slice(1)}</ListItemText>
+                                    </MenuItem>
+                                ))}
+                            </Menu>
+
+                            {/* User Switcher */}
+                            <IconButton onClick={handleUserClick}>
+                                <Avatar
+                                    sx={{
+                                        bgcolor: alpha('#fff', 0.2),
+                                        color: 'white',
+                                        width: 36,
+                                        height: 36,
+                                    }}
+                                >
+                                    {currentUser?.full_name?.charAt(0) || 'U'}
+                                </Avatar>
+                            </IconButton>
+                            <Menu
+                                anchorEl={userAnchor}
+                                open={Boolean(userAnchor)}
+                                onClose={() => setUserAnchor(null)}
+                            >
+                                <Box sx={{ px: 2, py: 1 }}>
+                                    <Typography variant="caption" color="text.secondary">
+                                        Switch Demo User
+                                    </Typography>
+                                </Box>
+                                <Divider />
+                                {currentRole === 'farmer' && farmers.map((user) => (
+                                    <MenuItem
+                                        key={user.id}
+                                        onClick={() => handleUserChange(user)}
+                                        selected={user.id === currentUser?.id}
+                                    >
+                                        <ListItemIcon>
+                                            <AgricultureIcon color="primary" />
+                                        </ListItemIcon>
+                                        <ListItemText
+                                            primary={user.full_name}
+                                            secondary={user.location || user.farm_location}
+                                        />
+                                    </MenuItem>
+                                ))}
+                                {currentRole === 'buyer' && buyers.map((user) => (
+                                    <MenuItem
+                                        key={user.id}
+                                        onClick={() => handleUserChange(user)}
+                                        selected={user.id === currentUser?.id}
+                                    >
+                                        <ListItemIcon>
+                                            <Storefront color="secondary" />
+                                        </ListItemIcon>
+                                        <ListItemText
+                                            primary={user.full_name}
+                                            secondary={user.location}
+                                        />
+                                    </MenuItem>
+                                ))}
+                                {currentRole === 'admin' && admins.map((user) => (
+                                    <MenuItem
+                                        key={user.id}
+                                        onClick={() => handleUserChange(user)}
+                                        selected={user.id === currentUser?.id}
+                                    >
+                                        <ListItemIcon>
+                                            <AdminPanelSettings color="info" />
+                                        </ListItemIcon>
+                                        <ListItemText primary={user.full_name} />
+                                    </MenuItem>
+                                ))}
+                            </Menu>
+                        </>
                     )}
-
-                    {/* Role Switcher */}
-                    <Chip
-                        icon={roleIcons[currentRole]}
-                        label={currentRole.charAt(0).toUpperCase() + currentRole.slice(1)}
-                        onClick={handleRoleClick}
-                        onDelete={handleRoleClick}
-                        deleteIcon={<KeyboardArrowDown />}
-                        sx={{
-                            bgcolor: roleColors[currentRole],
-                            color: 'white',
-                            fontWeight: 600,
-                            '& .MuiChip-icon': { color: 'white' },
-                            '& .MuiChip-deleteIcon': { color: 'white' },
-                            cursor: 'pointer',
-                        }}
-                    />
-                    <Menu
-                        anchorEl={roleAnchor}
-                        open={Boolean(roleAnchor)}
-                        onClose={() => setRoleAnchor(null)}
-                    >
-                        {['farmer', 'buyer', 'admin'].map((role) => (
-                            <MenuItem
-                                key={role}
-                                onClick={() => handleRoleChange(role)}
-                                selected={role === currentRole}
-                            >
-                                <ListItemIcon sx={{ color: roleColors[role] }}>
-                                    {roleIcons[role]}
-                                </ListItemIcon>
-                                <ListItemText>{role.charAt(0).toUpperCase() + role.slice(1)}</ListItemText>
-                            </MenuItem>
-                        ))}
-                    </Menu>
-
-                    {/* User Switcher */}
-                    <IconButton onClick={handleUserClick}>
-                        <Avatar
-                            sx={{
-                                bgcolor: alpha('#fff', 0.2),
-                                color: 'white',
-                                width: 36,
-                                height: 36,
-                            }}
-                        >
-                            {currentUser?.full_name?.charAt(0) || 'U'}
-                        </Avatar>
-                    </IconButton>
-                    <Menu
-                        anchorEl={userAnchor}
-                        open={Boolean(userAnchor)}
-                        onClose={() => setUserAnchor(null)}
-                    >
-                        <Box sx={{ px: 2, py: 1 }}>
-                            <Typography variant="caption" color="text.secondary">
-                                Switch Demo User
-                            </Typography>
-                        </Box>
-                        <Divider />
-                        {currentRole === 'farmer' && farmers.map((user) => (
-                            <MenuItem
-                                key={user.id}
-                                onClick={() => handleUserChange(user)}
-                                selected={user.id === currentUser?.id}
-                            >
-                                <ListItemIcon>
-                                    <AgricultureIcon color="primary" />
-                                </ListItemIcon>
-                                <ListItemText
-                                    primary={user.full_name}
-                                    secondary={user.location}
-                                />
-                            </MenuItem>
-                        ))}
-                        {currentRole === 'buyer' && buyers.map((user) => (
-                            <MenuItem
-                                key={user.id}
-                                onClick={() => handleUserChange(user)}
-                                selected={user.id === currentUser?.id}
-                            >
-                                <ListItemIcon>
-                                    <Storefront color="secondary" />
-                                </ListItemIcon>
-                                <ListItemText
-                                    primary={user.full_name}
-                                    secondary={user.location}
-                                />
-                            </MenuItem>
-                        ))}
-                        {currentRole === 'admin' && admins.map((user) => (
-                            <MenuItem
-                                key={user.id}
-                                onClick={() => handleUserChange(user)}
-                                selected={user.id === currentUser?.id}
-                            >
-                                <ListItemIcon>
-                                    <AdminPanelSettings color="info" />
-                                </ListItemIcon>
-                                <ListItemText primary={user.full_name} />
-                            </MenuItem>
-                        ))}
-                    </Menu>
                 </Box>
             </Toolbar>
         </AppBar>

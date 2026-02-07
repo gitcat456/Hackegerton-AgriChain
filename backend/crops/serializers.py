@@ -3,61 +3,31 @@ Crops serializers - Farms, Images, and Assessments.
 """
 
 from rest_framework import serializers
-from .models import Farm, CropImage, CropAssessment
+from .models import CropImage, CropAssessment
 
 
 class CropImageSerializer(serializers.ModelSerializer):
     image_url = serializers.SerializerMethodField()
+    farmer_name = serializers.CharField(source='farmer.full_name', read_only=True)
     
     class Meta:
         model = CropImage
-        fields = ['id', 'image', 'image_url', 'description', 'image_type', 'uploaded_at']
-        read_only_fields = ['id', 'uploaded_at']
-    
-    def get_image_url(self, obj):
-        if obj.image:
-            request = self.context.get('request')
-            if request:
-                return request.build_absolute_uri(obj.image.url)
-            return obj.image.url
-        return None
+        fields = ['id', 'farmer', 'farmer_name', 'image', 'description', 'image_type', 'uploaded_at']
+        read_only_fields = ['id', 'uploaded_at', 'farmer']
 
 
 class CropAssessmentSerializer(serializers.ModelSerializer):
+    farmer_name = serializers.CharField(source='farmer.full_name', read_only=True)
     health_percentage = serializers.IntegerField(read_only=True)
     
     class Meta:
         model = CropAssessment
-        fields = ['id', 'farm', 'crop_type', 'health_score', 'health_percentage',
-                  'estimated_yield', 'risk_level', 'recommendations', 
-                  'confidence_score', 'assessed_at']
-        read_only_fields = ['id', 'assessed_at']
-
-
-class FarmSerializer(serializers.ModelSerializer):
-    owner_name = serializers.CharField(source='owner.full_name', read_only=True)
-    latest_assessment = CropAssessmentSerializer(read_only=True)
-    images = CropImageSerializer(many=True, read_only=True)
-    image_count = serializers.SerializerMethodField()
-    
-    class Meta:
-        model = Farm
-        fields = ['id', 'owner', 'owner_name', 'name', 'location', 'size_acres',
-                  'description', 'current_crop', 'planting_date', 'expected_harvest_date',
-                  'latest_assessment', 'images', 'image_count', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'created_at', 'updated_at']
-    
-    def get_image_count(self, obj):
-        return obj.images.count()
-
-
-class FarmCreateSerializer(serializers.ModelSerializer):
-    """Simplified serializer for creating farms."""
-    
-    class Meta:
-        model = Farm
-        fields = ['owner', 'name', 'location', 'size_acres', 'description',
-                  'current_crop', 'planting_date', 'expected_harvest_date']
+        fields = [
+            'id', 'farmer', 'farmer_name', 'crop_type', 'health_score', 
+            'health_percentage', 'estimated_yield', 'risk_level', 
+            'recommendations', 'confidence_score', 'assessed_at'
+        ]
+        read_only_fields = ['id', 'assessed_at', 'farmer']
 
 
 class ImageUploadSerializer(serializers.Serializer):

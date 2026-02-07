@@ -1,5 +1,5 @@
 """
-Crops models - Farms, Crop Images, and AI Assessments.
+Crops models - Crop Images and AI Assessments.
 
 PRODUCTION NOTES:
 - AI assessment is mocked but designed for GPT-4 Vision or custom CV model integration
@@ -11,49 +11,13 @@ from django.conf import settings
 import uuid
 
 
-class Farm(models.Model):
-    """
-    Represents a farmer's farm/growing operation.
-    A farmer can have multiple farms or growing areas.
-    """
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    owner = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='farms'
-    )
-    
-    name = models.CharField(max_length=200)
-    location = models.CharField(max_length=300)
-    size_acres = models.DecimalField(max_digits=10, decimal_places=2)
-    description = models.TextField(blank=True)
-    
-    # Current growing cycle info
-    current_crop = models.CharField(max_length=100, blank=True)
-    planting_date = models.DateField(null=True, blank=True)
-    expected_harvest_date = models.DateField(null=True, blank=True)
-    
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    
-    def __str__(self):
-        return f"{self.name} - {self.owner.full_name}"
-    
-    @property
-    def latest_assessment(self):
-        return self.assessments.order_by('-assessed_at').first()
-    
-    class Meta:
-        ordering = ['-created_at']
-
-
 class CropImage(models.Model):
     """
     Images uploaded by farmer for AI assessment.
-    Multiple images can be uploaded per farm/assessment cycle.
+    Multiple images can be uploaded per assessment cycle.
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    farm = models.ForeignKey(Farm, on_delete=models.CASCADE, related_name='images')
+    farmer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='crop_images')
     
     image = models.ImageField(upload_to='crop_images/%Y/%m/')
     description = models.CharField(max_length=200, blank=True)
@@ -75,7 +39,7 @@ class CropImage(models.Model):
     uploaded_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
-        return f"Image for {self.farm.name} - {self.image_type}"
+        return f"Image by {self.farmer.full_name} - {self.image_type}"
     
     class Meta:
         ordering = ['-uploaded_at']
@@ -88,7 +52,6 @@ class CropAssessment(models.Model):
     PRODUCTION: Replace mock AI with:
     - GPT-4 Vision API for image analysis
     - Custom trained CV models for crop-specific assessment
-    - Integration with satellite/drone imagery APIs
     """
     YIELD_CHOICES = [
         ('low', 'Low'),
@@ -103,7 +66,7 @@ class CropAssessment(models.Model):
     ]
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    farm = models.ForeignKey(Farm, on_delete=models.CASCADE, related_name='assessments')
+    farmer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='assessments')
     
     # AI-inferred data
     crop_type = models.CharField(max_length=100)

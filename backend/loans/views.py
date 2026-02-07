@@ -8,20 +8,14 @@ from rest_framework.response import Response
 from django.utils import timezone
 from django.db import transaction
 
-from .models import LendingPool, Loan, LoanRepayment
+from .models import Loan, LoanRepayment
 from .serializers import (
-    LendingPoolSerializer, LoanSerializer, LoanApplicationSerializer,
+    LoanSerializer, LoanApplicationSerializer,
     LoanRepaymentSerializer, CreditScoreSerializer
 )
 from .credit_scoring import calculate_credit_score, get_credit_score_breakdown, get_loan_eligibility
 from .escrow_service import create_escrow_wallet, release_loan_milestone
 from core.models import User
-
-
-class LendingPoolViewSet(viewsets.ModelViewSet):
-    """API endpoint for lending pools (admin only in production)."""
-    queryset = LendingPool.objects.all()
-    serializer_class = LendingPoolSerializer
 
 
 class LoanViewSet(viewsets.ModelViewSet):
@@ -57,8 +51,7 @@ class LoanViewSet(viewsets.ModelViewSet):
         borrower = serializer.validated_data['borrower']
         
         # Get latest assessment for credit scoring
-        latest_farm = borrower.farms.first()
-        latest_assessment = latest_farm.latest_assessment if latest_farm else None
+        latest_assessment = borrower.assessments.order_by('-assessed_at').first()
         
         # Calculate credit score
         credit_score = calculate_credit_score(borrower, latest_assessment)
@@ -80,22 +73,15 @@ class LoanViewSet(viewsets.ModelViewSet):
                 'max_amount': eligibility['max_amount']
             }, status=400)
         
-        # Get or create lending pool
-        lending_pool, _ = LendingPool.objects.get_or_create(
-            name="AgriChain Main Pool",
-            defaults={'total_balance': 1000000, 'available_balance': 1000000}
-        )
-        
         # Create loan
         loan = Loan.objects.create(
             borrower=borrower,
-            lending_pool=lending_pool,
             amount_requested=requested,
             interest_rate=eligibility['interest_rate'],
             term_months=serializer.validated_data.get('term_months', 6),
             credit_score_at_application=credit_score,
             assessment_used=serializer.validated_data.get('assessment_used') or latest_assessment,
-            status='pending'
+            status='requested'
         )
         
         return Response({
@@ -113,7 +99,7 @@ class LoanViewSet(viewsets.ModelViewSet):
         """
         loan = self.get_object()
         
-        if loan.status != 'pending':
+        if loan.status != 'requested':
             return Response({'error': f'Cannot approve loan in {loan.status} status'}, status=400)
         
         # Allow optional amount adjustment
@@ -127,14 +113,13 @@ class LoanViewSet(viewsets.ModelViewSet):
             loan.admin_notes = admin_notes
             loan.escrow_wallet_address = create_escrow_wallet()
             
-            # Reserve funds from lending pool
-            pool = loan.lending_pool
-            if pool.available_balance < approved_amount:
-                return Response({'error': 'Insufficient funds in lending pool'}, status=400)
-            
-            pool.available_balance -= approved_amount
-            pool.reserved_balance += approved_amount
-            pool.save()
+            # Use simplified milestones for MVP
+            loan.milestones = [
+                {'name': 'Initial Disbursement', 'percentage': 50, 'released': False},
+                {'name': 'Mid-Season Check', 'percentage': 30, 'released': False},
+                {'name': 'Pre-Harvest', 'percentage': 20, 'released': False}
+            ]
+            loan.current_milestone = 0
             
             loan.save()
         

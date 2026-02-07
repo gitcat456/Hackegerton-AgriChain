@@ -3,16 +3,8 @@ Loans serializers - Lending Pool, Loans, and Repayments.
 """
 
 from rest_framework import serializers
-from .models import LendingPool, Loan, LoanRepayment
+from .models import Loan, LoanRepayment
 from crops.serializers import CropAssessmentSerializer
-
-
-class LendingPoolSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = LendingPool
-        fields = ['id', 'name', 'total_balance', 'available_balance', 
-                  'reserved_balance', 'base_interest_rate', 'created_at']
-        read_only_fields = ['id', 'created_at']
 
 
 class LoanRepaymentSerializer(serializers.ModelSerializer):
@@ -31,7 +23,7 @@ class LoanSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Loan
-        fields = ['id', 'borrower', 'borrower_name', 'lending_pool',
+        fields = ['id', 'borrower', 'borrower_name',
                   'amount_requested', 'amount_approved', 'interest_rate', 'term_months',
                   'status', 'credit_score_at_application', 'assessment_used',
                   'milestones', 'current_milestone', 'escrow_wallet_address',

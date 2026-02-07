@@ -1,27 +1,82 @@
-import { Box } from '@mui/material';
-import Navbar from './Navbar';
-import Footer from './Footer';
+import { useState } from 'react';
+import { Box, CssBaseline, Toolbar, Snackbar, Alert } from '@mui/material';
+import Navbar from '../common/Navbar';
+import Sidebar from '../common/Sidebar';
+import { Outlet } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 
-const Layout = ({ children }) => {
+const drawerWidth = 260;
+
+const Layout = () => {
+    const { user } = useAuth();
+    const [mobileOpen, setMobileOpen] = useState(false);
+    const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+
+    const handleDrawerToggle = () => {
+        setMobileOpen(!mobileOpen);
+    };
+
+    const showSnackbar = (message, severity = 'success') => {
+        setSnackbar({ open: true, message, severity });
+    };
+
+    const handleCloseSnackbar = () => {
+        setSnackbar({ ...snackbar, open: false });
+    };
+
     return (
-        <Box
-            sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                minHeight: '100vh',
-            }}
-        >
-            <Navbar />
+        <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+            <CssBaseline />
+            <Navbar onMenuClick={handleDrawerToggle} />
+
+            {user && (
+                <Sidebar
+                    mobileOpen={mobileOpen}
+                    handleDrawerToggle={handleDrawerToggle}
+                />
+            )}
+
             <Box
                 component="main"
                 sx={{
                     flexGrow: 1,
+                    width: { sm: `calc(100% - ${user ? drawerWidth : 0}px)` },
+                    minHeight: '100vh',
                     bgcolor: 'background.default',
+                    display: 'flex',
+                    flexDirection: 'column',
                 }}
             >
-                {children}
+                <Toolbar />
+                <Box
+                    sx={{
+                        flex: 1,
+                        p: { xs: 2, sm: 3 },
+                        maxWidth: '1400px',
+                        width: '100%',
+                        mx: 'auto',
+                    }}
+                >
+                    <Outlet context={{ showSnackbar }} />
+                </Box>
             </Box>
-            <Footer />
+
+            {/* Global Snackbar */}
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={4000}
+                onClose={handleCloseSnackbar}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            >
+                <Alert
+                    onClose={handleCloseSnackbar}
+                    severity={snackbar.severity}
+                    variant="filled"
+                    sx={{ width: '100%' }}
+                >
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
         </Box>
     );
 };

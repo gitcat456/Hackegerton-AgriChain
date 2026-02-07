@@ -1,0 +1,193 @@
+// ORDERS (7 instances with varied statuses and escrow states)
+export const mockOrders = [
+    {
+        id: 'O001',
+        buyerId: 'B001',
+        listingId: 'P001',
+        farmerId: 'F001',
+        productName: 'Premium White Maize',
+        quantity: 100,
+        unit: 'kg',
+        pricePerUnit: 45,
+        totalAmount: 4500,
+        status: 'PAID',
+        orderDate: '2024-02-07',
+        escrowStatus: 'LOCKED',
+        estimatedDelivery: '2024-02-10',
+        deliveryAddress: 'Nairobi Fresh Grocers, Tom Mboya Street, Nairobi',
+        farmerName: 'John Kamau',
+        buyerName: 'Sarah Ochieng',
+        timeline: [
+            { status: 'ORDERED', date: '2024-02-07', completed: true },
+            { status: 'PAID', date: '2024-02-07', completed: true },
+            { status: 'DISPATCHED', date: null, completed: false },
+            { status: 'RECEIVED', date: null, completed: false },
+            { status: 'RELEASED', date: null, completed: false }
+        ]
+    },
+    {
+        id: 'O002',
+        buyerId: 'B002',
+        listingId: 'P003',
+        farmerId: 'F005',
+        productName: 'High Yield Wheat Grain',
+        quantity: 500,
+        unit: 'kg',
+        pricePerUnit: 55,
+        totalAmount: 27500,
+        status: 'DISPATCHED',
+        orderDate: '2024-02-05',
+        escrowStatus: 'LOCKED',
+        estimatedDelivery: '2024-02-08',
+        deliveryAddress: 'Green Basket Warehouse, Mombasa',
+        farmerName: 'David Korir',
+        buyerName: 'Green Basket Ltd',
+        timeline: [
+            { status: 'ORDERED', date: '2024-02-05', completed: true },
+            { status: 'PAID', date: '2024-02-05', completed: true },
+            { status: 'DISPATCHED', date: '2024-02-06', completed: true },
+            { status: 'RECEIVED', date: null, completed: false },
+            { status: 'RELEASED', date: null, completed: false }
+        ]
+    },
+    {
+        id: 'O003',
+        buyerId: 'B001',
+        listingId: 'P002',
+        farmerId: 'F002',
+        productName: 'Organic Red Beans',
+        quantity: 50,
+        unit: 'kg',
+        pricePerUnit: 120,
+        totalAmount: 6000,
+        status: 'COMPLETED',
+        orderDate: '2024-01-25',
+        escrowStatus: 'RELEASED',
+        estimatedDelivery: '2024-01-28',
+        completedDate: '2024-01-28',
+        deliveryAddress: 'Nairobi Fresh Grocers, Tom Mboya Street, Nairobi',
+        farmerName: 'Mary Wanjiku',
+        buyerName: 'Sarah Ochieng',
+        buyerRating: 5,
+        buyerReview: 'Excellent quality beans, exactly as described!',
+        timeline: [
+            { status: 'ORDERED', date: '2024-01-25', completed: true },
+            { status: 'PAID', date: '2024-01-25', completed: true },
+            { status: 'DISPATCHED', date: '2024-01-26', completed: true },
+            { status: 'RECEIVED', date: '2024-01-28', completed: true },
+            { status: 'RELEASED', date: '2024-01-28', completed: true }
+        ]
+    },
+    {
+        id: 'O004',
+        buyerId: 'B003',
+        listingId: 'P004',
+        farmerId: 'F004',
+        productName: 'Fresh Cassava Tubers',
+        quantity: 300,
+        unit: 'kg',
+        pricePerUnit: 30,
+        totalAmount: 9000,
+        status: 'COMPLETED',
+        orderDate: '2024-01-22',
+        escrowStatus: 'RELEASED',
+        estimatedDelivery: '2024-01-24',
+        completedDate: '2024-01-24',
+        deliveryAddress: 'Mwangi General Store, Thika',
+        farmerName: 'Alice Muthoni',
+        buyerName: 'James Mwangi',
+        buyerRating: 4,
+        buyerReview: 'Good cassava, fresh and well-packaged.',
+        timeline: [
+            { status: 'ORDERED', date: '2024-01-22', completed: true },
+            { status: 'PAID', date: '2024-01-22', completed: true },
+            { status: 'DISPATCHED', date: '2024-01-23', completed: true },
+            { status: 'RECEIVED', date: '2024-01-24', completed: true },
+            { status: 'RELEASED', date: '2024-01-24', completed: true }
+        ]
+    },
+    {
+        id: 'O005',
+        buyerId: 'B004',
+        listingId: 'P005',
+        farmerId: 'F001',
+        productName: 'Yellow Maize - Feed Grade',
+        quantity: 200,
+        unit: 'kg',
+        pricePerUnit: 40,
+        totalAmount: 8000,
+        status: 'RECEIVED',
+        orderDate: '2024-02-06',
+        escrowStatus: 'LOCKED',
+        estimatedDelivery: '2024-02-08',
+        deliveryAddress: 'FreshFarm International HQ, Nairobi',
+        farmerName: 'John Kamau',
+        buyerName: 'FreshFarm Exports',
+        timeline: [
+            { status: 'ORDERED', date: '2024-02-06', completed: true },
+            { status: 'PAID', date: '2024-02-06', completed: true },
+            { status: 'DISPATCHED', date: '2024-02-07', completed: true },
+            { status: 'RECEIVED', date: '2024-02-08', completed: true },
+            { status: 'RELEASED', date: null, completed: false }
+        ]
+    },
+    {
+        id: 'O006',
+        buyerId: 'B006',
+        listingId: 'P006',
+        farmerId: 'F006',
+        productName: 'Premium Sorghum',
+        quantity: 150,
+        unit: 'kg',
+        pricePerUnit: 65,
+        totalAmount: 9750,
+        status: 'PAID',
+        orderDate: '2024-02-08',
+        escrowStatus: 'LOCKED',
+        estimatedDelivery: '2024-02-11',
+        deliveryAddress: 'SuperMart Distribution Center, Nakuru',
+        farmerName: 'Grace Achieng',
+        buyerName: 'SuperMart Kenya',
+        timeline: [
+            { status: 'ORDERED', date: '2024-02-08', completed: true },
+            { status: 'PAID', date: '2024-02-08', completed: true },
+            { status: 'DISPATCHED', date: null, completed: false },
+            { status: 'RECEIVED', date: null, completed: false },
+            { status: 'RELEASED', date: null, completed: false }
+        ]
+    },
+    {
+        id: 'O007',
+        buyerId: 'B007',
+        listingId: 'P007',
+        farmerId: 'F007',
+        productName: 'Aromatic Mwea Rice',
+        quantity: 400,
+        unit: 'kg',
+        pricePerUnit: 90,
+        totalAmount: 36000,
+        status: 'DISPATCHED',
+        orderDate: '2024-02-04',
+        escrowStatus: 'LOCKED',
+        estimatedDelivery: '2024-02-09',
+        deliveryAddress: 'Organic Foods Ltd, Westlands, Nairobi',
+        farmerName: 'Samuel Njoroge',
+        buyerName: 'Organic Foods Kenya',
+        timeline: [
+            { status: 'ORDERED', date: '2024-02-04', completed: true },
+            { status: 'PAID', date: '2024-02-04', completed: true },
+            { status: 'DISPATCHED', date: '2024-02-06', completed: true },
+            { status: 'RECEIVED', date: null, completed: false },
+            { status: 'RELEASED', date: null, completed: false }
+        ]
+    }
+];
+
+// Order status flow for reference
+export const orderStatusFlow = [
+    'ORDERED',
+    'PAID',
+    'DISPATCHED',
+    'RECEIVED',
+    'RELEASED'
+];

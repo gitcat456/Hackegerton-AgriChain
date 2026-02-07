@@ -31,11 +31,6 @@ class Listing(models.Model):
         on_delete=models.CASCADE,
         related_name='listings'
     )
-    farm = models.ForeignKey(
-        'crops.Farm',
-        on_delete=models.CASCADE,
-        related_name='listings'
-    )
     
     # Product details
     title = models.CharField(max_length=200)
@@ -52,7 +47,7 @@ class Listing(models.Model):
     delivery_available = models.BooleanField(default=True)
     delivery_radius_km = models.IntegerField(default=50)
     
-    # AI assessment summary (linked from latest farm assessment)
+    # AI assessment summary (linked from latest assessment)
     assessment = models.ForeignKey(
         'crops.CropAssessment',
         on_delete=models.SET_NULL,
