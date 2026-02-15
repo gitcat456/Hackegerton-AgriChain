@@ -37,6 +37,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { useAuth } from '../../contexts/AuthContext';
 import { mockApi } from '../../data/mockApi';
 import { loanPurposes, loanDurations } from '../../data/mockLoans';
+import PageBackground from '../layout/PageBackground';
 
 const steps = ['Loan Details', 'Link Assessment', 'Review & Submit'];
 
@@ -394,85 +395,87 @@ const LoanApplication = () => {
     };
 
     return (
-        <Box maxWidth="md" mx="auto">
-            <Typography variant="h4" fontWeight="bold" gutterBottom>
-                Apply for a Loan
-            </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-                Get funds based on your crop assessment and credit score
-            </Typography>
+        <PageBackground type="farmer">
+            <Box maxWidth="md" mx="auto">
+                <Typography variant="h4" fontWeight="bold" gutterBottom>
+                    Apply for a Loan
+                </Typography>
+                <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+                    Get funds based on your crop assessment and credit score
+                </Typography>
 
-            {/* Stepper */}
-            <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
-                {steps.map((label) => (
-                    <Step key={label}>
-                        <StepLabel>{label}</StepLabel>
-                    </Step>
-                ))}
-            </Stepper>
+                {/* Stepper */}
+                <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
+                    {steps.map((label) => (
+                        <Step key={label}>
+                            <StepLabel>{label}</StepLabel>
+                        </Step>
+                    ))}
+                </Stepper>
 
-            {/* Step Content */}
-            <Paper sx={{ p: 4, mb: 4 }}>
-                <form onSubmit={handleSubmit(onSubmit)}>
-                    {renderStepContent(activeStep)}
+                {/* Step Content */}
+                <Paper sx={{ p: 4, mb: 4 }}>
+                    <form onSubmit={handleSubmit(onSubmit)}>
+                        {renderStepContent(activeStep)}
 
-                    {/* Navigation */}
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4, pt: 3, borderTop: '1px solid', borderColor: 'divider' }}>
-                        <Button
-                            disabled={activeStep === 0}
-                            onClick={handleBack}
-                        >
-                            Back
+                        {/* Navigation */}
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4, pt: 3, borderTop: '1px solid', borderColor: 'divider' }}>
+                            <Button
+                                disabled={activeStep === 0}
+                                onClick={handleBack}
+                            >
+                                Back
+                            </Button>
+
+                            {activeStep === steps.length - 1 ? (
+                                <Button
+                                    variant="contained"
+                                    type="submit"
+                                    disabled={!watchTerms || submitting}
+                                    startIcon={submitting ? <CircularProgress size={20} /> : <MonetizationOn />}
+                                >
+                                    {submitting ? 'Submitting...' : 'Submit Application'}
+                                </Button>
+                            ) : (
+                                <Button
+                                    variant="contained"
+                                    onClick={handleNext}
+                                    disabled={activeStep === 1 && !selectedAssessment}
+                                >
+                                    Continue
+                                </Button>
+                            )}
+                        </Box>
+                    </form>
+                </Paper>
+
+                {/* Success Dialog */}
+                <Dialog open={successDialog} maxWidth="sm" fullWidth>
+                    <DialogTitle sx={{ textAlign: 'center', pt: 4 }}>
+                        <CheckCircle color="success" sx={{ fontSize: 64, mb: 2 }} />
+                        <Typography variant="h5" fontWeight="bold">
+                            Application Submitted!
+                        </Typography>
+                    </DialogTitle>
+                    <DialogContent sx={{ textAlign: 'center' }}>
+                        <Typography color="text.secondary" sx={{ mb: 2 }}>
+                            Your loan application for <strong>KES {watchAmount.toLocaleString()}</strong> has been submitted successfully.
+                        </Typography>
+                        <Alert severity="info">
+                            Estimated approval time: <strong>24-48 hours</strong>
+                        </Alert>
+                    </DialogContent>
+                    <DialogActions sx={{ p: 3, justifyContent: 'center' }}>
+                        <Button variant="outlined" onClick={() => navigate('/farmer/loans')}>
+                            View Loan Status
                         </Button>
-
-                        {activeStep === steps.length - 1 ? (
-                            <Button
-                                variant="contained"
-                                type="submit"
-                                disabled={!watchTerms || submitting}
-                                startIcon={submitting ? <CircularProgress size={20} /> : <MonetizationOn />}
-                            >
-                                {submitting ? 'Submitting...' : 'Submit Application'}
-                            </Button>
-                        ) : (
-                            <Button
-                                variant="contained"
-                                onClick={handleNext}
-                                disabled={activeStep === 1 && !selectedAssessment}
-                            >
-                                Continue
-                            </Button>
-                        )}
-                    </Box>
-                </form>
-            </Paper>
-
-            {/* Success Dialog */}
-            <Dialog open={successDialog} maxWidth="sm" fullWidth>
-                <DialogTitle sx={{ textAlign: 'center', pt: 4 }}>
-                    <CheckCircle color="success" sx={{ fontSize: 64, mb: 2 }} />
-                    <Typography variant="h5" fontWeight="bold">
-                        Application Submitted!
-                    </Typography>
-                </DialogTitle>
-                <DialogContent sx={{ textAlign: 'center' }}>
-                    <Typography color="text.secondary" sx={{ mb: 2 }}>
-                        Your loan application for <strong>KES {watchAmount.toLocaleString()}</strong> has been submitted successfully.
-                    </Typography>
-                    <Alert severity="info">
-                        Estimated approval time: <strong>24-48 hours</strong>
-                    </Alert>
-                </DialogContent>
-                <DialogActions sx={{ p: 3, justifyContent: 'center' }}>
-                    <Button variant="outlined" onClick={() => navigate('/farmer/loans')}>
-                        View Loan Status
-                    </Button>
-                    <Button variant="contained" onClick={() => navigate('/farmer/dashboard')}>
-                        Back to Dashboard
-                    </Button>
-                </DialogActions>
-            </Dialog>
-        </Box>
+                        <Button variant="contained" onClick={() => navigate('/farmer/dashboard')}>
+                            Back to Dashboard
+                        </Button>
+                    </DialogActions>
+                </Dialog>
+            </Box>
+        </PageBackground>
     );
 };
 

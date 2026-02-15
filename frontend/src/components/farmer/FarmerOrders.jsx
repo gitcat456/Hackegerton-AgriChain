@@ -32,6 +32,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { mockApi } from '../../data/mockApi';
 import StatusBadge from '../common/StatusBadge';
 import EmptyState from '../common/EmptyState';
+import PageBackground from '../layout/PageBackground';
 
 const FarmerOrders = () => {
     const navigate = useNavigate();
@@ -193,110 +194,112 @@ const FarmerOrders = () => {
     };
 
     return (
-        <Box>
-            {/* Header */}
-            <Typography variant="h4" fontWeight="bold" gutterBottom>
-                Orders Received
-            </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-                Manage orders from buyers and track payments
-            </Typography>
+        <PageBackground type="farmer">
+            <Box>
+                {/* Header */}
+                <Typography variant="h4" fontWeight="bold" gutterBottom>
+                    Orders Received
+                </Typography>
+                <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+                    Manage orders from buyers and track payments
+                </Typography>
 
-            {/* Summary Cards */}
-            <Grid container spacing={3} sx={{ mb: 4 }}>
-                <Grid item xs={12} sm={6} md={3}>
-                    <Paper sx={{ p: 3, textAlign: 'center' }}>
-                        <Typography variant="body2" color="text.secondary">Total Orders</Typography>
-                        <Typography variant="h4" fontWeight="bold">{orders.length}</Typography>
-                    </Paper>
+                {/* Summary Cards */}
+                <Grid container spacing={3} sx={{ mb: 4 }}>
+                    <Grid item xs={12} sm={6} md={3}>
+                        <Paper sx={{ p: 3, textAlign: 'center' }}>
+                            <Typography variant="body2" color="text.secondary">Total Orders</Typography>
+                            <Typography variant="h4" fontWeight="bold">{orders.length}</Typography>
+                        </Paper>
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={3}>
+                        <Paper sx={{ p: 3, textAlign: 'center' }}>
+                            <Typography variant="body2" color="text.secondary">New Orders</Typography>
+                            <Typography variant="h4" fontWeight="bold" color="warning.main">
+                                {pendingOrders.length}
+                            </Typography>
+                        </Paper>
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={3}>
+                        <Paper sx={{ p: 3, textAlign: 'center' }}>
+                            <Typography variant="body2" color="text.secondary">Pending Earnings</Typography>
+                            <Typography variant="h5" fontWeight="bold" color="secondary.main">
+                                KES {pendingEarnings.toLocaleString()}
+                            </Typography>
+                        </Paper>
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={3}>
+                        <Paper sx={{ p: 3, textAlign: 'center' }}>
+                            <Typography variant="body2" color="text.secondary">Total Earned</Typography>
+                            <Typography variant="h5" fontWeight="bold" color="success.main">
+                                KES {totalEarnings.toLocaleString()}
+                            </Typography>
+                        </Paper>
+                    </Grid>
                 </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                    <Paper sx={{ p: 3, textAlign: 'center' }}>
-                        <Typography variant="body2" color="text.secondary">New Orders</Typography>
-                        <Typography variant="h4" fontWeight="bold" color="warning.main">
-                            {pendingOrders.length}
+
+                {/* Tabs */}
+                <Paper sx={{ mb: 3 }}>
+                    <Tabs value={tabValue} onChange={(e, v) => setTabValue(v)} variant="scrollable">
+                        {tabs.map((tab, index) => (
+                            <Tab
+                                key={tab.label}
+                                label={`${tab.label} (${tab.data.length})`}
+                                icon={tab.icon}
+                                iconPosition="start"
+                            />
+                        ))}
+                    </Tabs>
+                </Paper>
+
+                {/* Content */}
+                {loading ? (
+                    <Box>
+                        {[1, 2].map(i => (
+                            <Skeleton key={i} height={220} sx={{ mb: 2, borderRadius: 3 }} />
+                        ))}
+                    </Box>
+                ) : displayedOrders.length > 0 ? (
+                    displayedOrders.map(order => (
+                        <OrderCard key={order.id} order={order} />
+                    ))
+                ) : (
+                    <EmptyState
+                        variant="orders"
+                        title={`No ${tabs[tabValue].label.toLowerCase()}`}
+                        message={tabValue === 0
+                            ? "New orders from buyers will appear here."
+                            : `No ${tabs[tabValue].label.toLowerCase()} to display.`
+                        }
+                        action={tabValue === 0 ? () => navigate('/farmer/listings') : undefined}
+                        actionLabel={tabValue === 0 ? "Manage Listings" : undefined}
+                    />
+                )}
+
+                {/* Dispatch Confirmation Dialog */}
+                <Dialog open={dispatchDialog.open} onClose={() => setDispatchDialog({ open: false, order: null })}>
+                    <DialogTitle>Confirm Dispatch</DialogTitle>
+                    <DialogContent>
+                        <Typography>
+                            Confirm that you have dispatched <strong>{dispatchDialog.order?.productName}</strong> ({dispatchDialog.order?.quantity} {dispatchDialog.order?.unit}) to the buyer.
                         </Typography>
-                    </Paper>
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                    <Paper sx={{ p: 3, textAlign: 'center' }}>
-                        <Typography variant="body2" color="text.secondary">Pending Earnings</Typography>
-                        <Typography variant="h5" fontWeight="bold" color="secondary.main">
-                            KES {pendingEarnings.toLocaleString()}
+                        <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                            Delivery address: {dispatchDialog.order?.deliveryAddress}
                         </Typography>
-                    </Paper>
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                    <Paper sx={{ p: 3, textAlign: 'center' }}>
-                        <Typography variant="body2" color="text.secondary">Total Earned</Typography>
-                        <Typography variant="h5" fontWeight="bold" color="success.main">
-                            KES {totalEarnings.toLocaleString()}
-                        </Typography>
-                    </Paper>
-                </Grid>
-            </Grid>
-
-            {/* Tabs */}
-            <Paper sx={{ mb: 3 }}>
-                <Tabs value={tabValue} onChange={(e, v) => setTabValue(v)} variant="scrollable">
-                    {tabs.map((tab, index) => (
-                        <Tab
-                            key={tab.label}
-                            label={`${tab.label} (${tab.data.length})`}
-                            icon={tab.icon}
-                            iconPosition="start"
-                        />
-                    ))}
-                </Tabs>
-            </Paper>
-
-            {/* Content */}
-            {loading ? (
-                <Box>
-                    {[1, 2].map(i => (
-                        <Skeleton key={i} height={220} sx={{ mb: 2, borderRadius: 3 }} />
-                    ))}
-                </Box>
-            ) : displayedOrders.length > 0 ? (
-                displayedOrders.map(order => (
-                    <OrderCard key={order.id} order={order} />
-                ))
-            ) : (
-                <EmptyState
-                    variant="orders"
-                    title={`No ${tabs[tabValue].label.toLowerCase()}`}
-                    message={tabValue === 0
-                        ? "New orders from buyers will appear here."
-                        : `No ${tabs[tabValue].label.toLowerCase()} to display.`
-                    }
-                    action={tabValue === 0 ? () => navigate('/farmer/listings') : undefined}
-                    actionLabel={tabValue === 0 ? "Manage Listings" : undefined}
-                />
-            )}
-
-            {/* Dispatch Confirmation Dialog */}
-            <Dialog open={dispatchDialog.open} onClose={() => setDispatchDialog({ open: false, order: null })}>
-                <DialogTitle>Confirm Dispatch</DialogTitle>
-                <DialogContent>
-                    <Typography>
-                        Confirm that you have dispatched <strong>{dispatchDialog.order?.productName}</strong> ({dispatchDialog.order?.quantity} {dispatchDialog.order?.unit}) to the buyer.
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                        Delivery address: {dispatchDialog.order?.deliveryAddress}
-                    </Typography>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setDispatchDialog({ open: false, order: null })}>Cancel</Button>
-                    <Button
-                        variant="contained"
-                        onClick={() => handleMarkDispatched(dispatchDialog.order)}
-                        startIcon={<LocalShipping />}
-                    >
-                        Mark as Dispatched
-                    </Button>
-                </DialogActions>
-            </Dialog>
-        </Box>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={() => setDispatchDialog({ open: false, order: null })}>Cancel</Button>
+                        <Button
+                            variant="contained"
+                            onClick={() => handleMarkDispatched(dispatchDialog.order)}
+                            startIcon={<LocalShipping />}
+                        >
+                            Mark as Dispatched
+                        </Button>
+                    </DialogActions>
+                </Dialog>
+            </Box>
+        </PageBackground>
     );
 };
 
