@@ -1,12 +1,14 @@
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Box } from '@mui/material';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { WalletProvider } from './contexts/WalletContext';
 import { CartProvider } from './contexts/CartContext';
 import theme from './theme/muiTheme';
 import Layout from './components/layout/Layout';
 import Landing from './pages/Landing';
+import Login from './pages/Login';
 
 // Farmer Components
 import FarmerDashboard from './components/farmer/Dashboard';
@@ -75,6 +77,12 @@ function AppRoutes() {
         </PublicRoute>
       } />
 
+      <Route path="/login" element={
+        <PublicRoute>
+          <Login />
+        </PublicRoute>
+      } />
+
       {/* Protected Routes with Layout */}
       <Route element={<Layout />}>
 
@@ -139,6 +147,14 @@ function AppRoutes() {
         <Route path="/farmer/wallet" element={
           <ProtectedRoute allowedRole="farmer">
             <Wallet />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/farmer/wallet" element={
+          <ProtectedRoute allowedRole="farmer">
+            <Box sx={{ mt: 4 }}>
+              <Wallet userType="farmer" />
+            </Box>
           </ProtectedRoute>
         } />
 
