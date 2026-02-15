@@ -24,7 +24,8 @@ import {
     Inventory,
     Add,
     LocalShipping,
-    BarChart
+    BarChart,
+    ChevronRight
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -40,52 +41,48 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
 
     const farmerMenuItems = [
         {
-            section: 'Dashboard',
+            section: 'OVERVIEW',
             items: [
-                { text: 'Overview', icon: <Dashboard />, path: '/farmer/dashboard' },
+                { text: 'Dashboard', icon: <Dashboard />, path: '/farmer/dashboard' },
             ]
         },
         {
-            section: 'Crop Management',
+            section: 'CROP MANAGEMENT',
             items: [
-                { text: 'Upload Crops', icon: <CloudUpload />, path: '/farmer/upload-assessment' },
-                { text: 'My Assessments', icon: <Assignment />, path: '/farmer/assessments' },
+                { text: 'Assessments', icon: <Assignment />, path: '/farmer/assessments' },
+                { text: 'Upload New', icon: <CloudUpload />, path: '/farmer/upload-assessment' },
             ]
         },
         {
-            section: 'Finance',
+            section: 'FINANCE',
             items: [
                 { text: 'Loans', icon: <MonetizationOn />, path: '/farmer/loans' },
                 { text: 'Apply for Loan', icon: <Add />, path: '/farmer/loan/apply' },
+                { text: 'Wallet', icon: <AccountBalanceWallet />, path: '/farmer/wallet' },
             ]
         },
         {
-            section: 'Marketplace',
+            section: 'MARKETPLACE',
             items: [
                 { text: 'My Listings', icon: <Inventory />, path: '/farmer/listings' },
-                { text: 'Create Listing', icon: <Add />, path: '/farmer/listing/create' },
-                { text: 'Orders Received', icon: <LocalShipping />, path: '/farmer/orders' },
+                { text: 'Create New', icon: <Add />, path: '/farmer/listing/create' },
+                { text: 'Orders', icon: <LocalShipping />, path: '/farmer/orders' },
             ]
         },
     ];
 
     const buyerMenuItems = [
         {
-            section: 'Shopping',
+            section: 'SHOPPING',
             items: [
                 { text: 'Marketplace', icon: <Storefront />, path: '/marketplace' },
-                { text: 'My Cart', icon: <ShoppingCart />, path: '/buyer/cart' },
+                { text: 'Cart', icon: <ShoppingCart />, path: '/buyer/cart' },
             ]
         },
         {
-            section: 'Orders',
+            section: 'ORDERS & FINANCE',
             items: [
                 { text: 'My Orders', icon: <Receipt />, path: '/buyer/orders' },
-            ]
-        },
-        {
-            section: 'Account',
-            items: [
                 { text: 'Wallet', icon: <AccountBalanceWallet />, path: '/buyer/wallet' },
             ]
         },
@@ -98,26 +95,29 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
         if (isMobile) handleDrawerToggle();
     };
 
-    const drawer = (
+    const drawerContent = (
         <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-            <Toolbar />
+            <Toolbar sx={{ height: 70 }} /> {/* Spacer for Navbar */}
 
-            <Box sx={{ flex: 1, px: 2, py: 1, overflowY: 'auto' }}>
-                {menuSections.map((section, sectionIndex) => (
-                    <Box key={section.section} sx={{ mb: 2 }}>
+            <Box sx={{ flex: 1, px: 2, py: 3, overflowY: 'auto' }}>
+                {menuSections.map((section, index) => (
+                    <Box key={section.section} sx={{ mb: 4 }}>
                         <Typography
-                            variant="overline"
+                            variant="caption"
                             sx={{
-                                px: 1,
-                                color: 'text.secondary',
-                                fontWeight: 600,
-                                letterSpacing: 1.2,
+                                px: 2,
+                                mb: 1,
+                                display: 'block',
+                                color: 'yellow',
+                                fontWeight: 800,
+                                letterSpacing: 1.5,
+                                fontSize: '0.7rem'
                             }}
                         >
                             {section.section}
                         </Typography>
 
-                        <List sx={{ py: 0.5 }}>
+                        <List disablePadding>
                             {section.items.map((item) => {
                                 const isActive = location.pathname === item.path;
 
@@ -127,31 +127,35 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
                                         onClick={() => handleNavigation(item.path)}
                                         selected={isActive}
                                         sx={{
-                                            borderRadius: 2,
+                                            borderRadius: 3,
                                             mb: 0.5,
                                             py: 1.2,
-                                            transition: 'all 0.2s ease-in-out',
+                                            px: 2,
+                                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                            position: 'relative',
+                                            overflow: 'hidden',
                                             '&.Mui-selected': {
-                                                bgcolor: alpha(theme.palette.primary.main, 0.12),
-                                                color: 'primary.main',
+                                                bgcolor: 'primary.main',
+                                                color: 'white',
+                                                boxShadow: '0 4px 12px rgba(5, 150, 105, 0.3)',
                                                 '&:hover': {
-                                                    bgcolor: alpha(theme.palette.primary.main, 0.18),
+                                                    bgcolor: 'primary.dark',
                                                 },
                                                 '& .MuiListItemIcon-root': {
-                                                    color: 'primary.main',
+                                                    color: 'white',
                                                 },
                                             },
-                                            '&:hover': {
-                                                bgcolor: 'action.hover',
+                                            '&:not(.Mui-selected):hover': {
+                                                bgcolor: alpha(theme.palette.primary.main, 0.08),
                                                 transform: 'translateX(4px)',
                                             },
                                         }}
                                     >
                                         <ListItemIcon
                                             sx={{
-                                                minWidth: 40,
-                                                color: isActive ? 'primary.main' : 'text.secondary',
-                                                transition: 'color 0.2s',
+                                                minWidth: 36,
+                                                color: isActive ? 'inherit' : 'text.secondary',
+                                                transition: 'color 0.3s',
                                             }}
                                         >
                                             {item.icon}
@@ -163,22 +167,24 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
                                                 fontSize: '0.9rem',
                                             }}
                                         />
+                                        {isActive && <ChevronRight fontSize="small" />}
                                     </ListItemButton>
                                 );
                             })}
                         </List>
-
-                        {sectionIndex < menuSections.length - 1 && (
-                            <Divider sx={{ my: 1.5, mx: 1 }} />
-                        )}
                     </Box>
                 ))}
             </Box>
 
             {/* Footer */}
-            <Box sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
-                <Typography variant="caption" color="text.disabled" align="center" display="block">
-                    AgriChain v1.0.0
+            <Box sx={{
+                p: 2,
+                borderTop: '1px solid',
+                borderColor: 'divider',
+                bgcolor: 'rgba(255,255,255,0.5)'
+            }}>
+                <Typography variant="caption" color="text.secondary" align="center" display="block" fontWeight={500}>
+                    AgriChain v2.0
                 </Typography>
             </Box>
         </Box>
@@ -189,7 +195,6 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
             component="nav"
             sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
         >
-            {/* Mobile Drawer */}
             <Drawer
                 variant="temporary"
                 open={mobileOpen}
@@ -201,14 +206,14 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
                         boxSizing: 'border-box',
                         width: drawerWidth,
                         borderRight: 'none',
-                        boxShadow: 3,
+                        bgcolor: 'rgba(85, 176, 91, 0.3)',
+                        backdropFilter: 'blur(16px)',
                     },
                 }}
             >
-                {drawer}
+                {drawerContent}
             </Drawer>
 
-            {/* Desktop Drawer */}
             <Drawer
                 variant="permanent"
                 sx={{
@@ -216,13 +221,15 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
                     '& .MuiDrawer-paper': {
                         boxSizing: 'border-box',
                         width: drawerWidth,
-                        borderRight: 'none',
-                        boxShadow: '2px 0 8px rgba(0,0,0,0.04)',
+                        borderRight: '1px solid rgba(255,255,255,0.3)',
+                        bgcolor: 'rgba(85, 176, 91, 0.3)',
+                        backdropFilter: 'blur(8px)',
+                        boxShadow: 'none',
                     },
                 }}
                 open
             >
-                {drawer}
+                {drawerContent}
             </Drawer>
         </Box>
     );
