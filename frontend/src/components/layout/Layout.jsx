@@ -41,18 +41,18 @@ const Layout = () => {
                 sx={{
                     flexGrow: 1,
                     width: { sm: `calc(100% - ${user ? drawerWidth : 0}px)` },
-                    minHeight: '100vh',
-                    bgcolor: 'background.default',
                     display: 'flex',
                     flexDirection: 'column',
+                    position: 'relative',
+                    zIndex: 1
                 }}
             >
-                <Toolbar />
+                <Toolbar sx={{ height: 70 }} />
                 <Box
                     sx={{
                         flex: 1,
-                        p: { xs: 2, sm: 3 },
-                        maxWidth: '1400px',
+                        p: { xs: 2, sm: 3, md: 4 },
+                        maxWidth: '1600px',
                         width: '100%',
                         mx: 'auto',
                     }}
