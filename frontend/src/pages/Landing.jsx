@@ -459,7 +459,7 @@ const Landing = () => {
     );
 
     /* ──────────────────────────────────────────────────────────────────────
-     * FEATURES SECTION
+     * FEATURES SECTION - Tall vertical cards (iPhone-shaped, original styling)
      * ────────────────────────────────────────────────────────────────────── */
     const features = [
         {
@@ -547,16 +547,33 @@ const Landing = () => {
                     </Typography>
                 </Box>
 
-                {/* Feature cards grid */}
-                <Grid container spacing={3}>
+                {/* Feature cards grid - Tall vertical cards */}
+                <Grid
+                    container
+                    spacing={3}
+                    justifyContent="center"
+                >
                     {features.map((feature, index) => (
-                        <Grid item xs={12} sm={6} md={4} key={index}>
+                        <Grid
+                            item
+                            xs={12}
+                            sm={6}
+                            md={4}
+                            lg={4}
+                            key={index}
+                            sx={{
+                                display: 'flex',
+                                justifyContent: 'center',
+                            }}
+                        >
                             <Paper
                                 className={`hover-lift animate-fade-in-up delay-${(index + 1) * 100}`}
                                 elevation={0}
                                 sx={{
-                                    p: 4,
-                                    height: '100%',
+                                    width: '100%',
+                                    maxWidth: 300,           // Narrow like iPhone
+                                    height: 380,              // Tall like iPhone but not excessive
+                                    p: 3,
                                     borderRadius: 4,
                                     border: '1px solid',
                                     borderColor: alpha(feature.color, 0.1),
@@ -564,16 +581,20 @@ const Landing = () => {
                                     cursor: 'default',
                                     position: 'relative',
                                     overflow: 'hidden',
+                                    display: 'flex',
+                                    flexDirection: 'column',
                                     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                                     '&:hover': {
                                         borderColor: alpha(feature.color, 0.25),
+                                        transform: 'translateY(-4px)',
+                                        boxShadow: `0 12px 24px ${alpha(feature.color, 0.1)}`,
                                         '& .feature-icon': {
                                             transform: 'scale(1.1) rotate(-5deg)',
                                         },
                                     },
                                 }}
                             >
-                                {/* Background accent blob */}
+                                {/* Background accent blob - original styling */}
                                 <Box sx={{
                                     position: 'absolute',
                                     top: -30,
@@ -584,6 +605,7 @@ const Landing = () => {
                                     bgcolor: alpha(feature.color, 0.06),
                                 }} />
 
+                                {/* Icon - positioned at top */}
                                 <Avatar
                                     className="feature-icon"
                                     variant="rounded"
@@ -593,26 +615,34 @@ const Landing = () => {
                                         width: 56,
                                         height: 56,
                                         borderRadius: 3,
-                                        mb: 2.5,
+                                        mb: 3,
                                         transition: 'transform 0.3s ease',
                                     }}
                                 >
                                     {feature.icon}
                                 </Avatar>
 
+                                {/* Title */}
                                 <Typography
                                     variant="h6"
                                     fontWeight={700}
                                     gutterBottom
-                                    sx={{ color: 'text.primary' }}
+                                    sx={{
+                                        color: 'text.primary',
+                                        mb: 2,
+                                    }}
                                 >
                                     {feature.title}
                                 </Typography>
 
+                                {/* Description - will expand to fill remaining space */}
                                 <Typography
                                     variant="body2"
                                     color="text.secondary"
-                                    sx={{ lineHeight: 1.7 }}
+                                    sx={{
+                                        lineHeight: 1.7,
+                                        flex: 1,  // Takes remaining vertical space
+                                    }}
                                 >
                                     {feature.description}
                                 </Typography>
