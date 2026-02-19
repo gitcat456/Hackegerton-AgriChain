@@ -84,36 +84,50 @@ const Dashboard = () => {
     return (
         <PageBackground type="farmer">
             <Box className="animate-fade-in-up">
-                {/* Header Section */}
-                <Box sx={{
-                    mb: 5,
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'flex-end',
-                    flexWrap: 'wrap',
-                    gap: 3
-                }}>
+
+                {/* ── Transparent Navbar-style Header ── */}
+                <Box
+                    sx={{
+                        mb: 5,
+                        px: 3,
+                        py: 2,
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        flexWrap: 'wrap',
+                        gap: 2,
+                        backdropFilter: 'blur(18px)',
+                        bgcolor: 'rgba(255,255,255,0.08)',
+                        borderBottom: '1px solid rgba(255,255,255,0.22)',
+                        boxShadow: '0 6px 28px rgba(0,0,0,0.18)',
+                        borderRadius: 2,
+                    }}
+                >
+                    {/* Left: badge + greeting */}
                     <Box>
                         <Chip
                             label={`Verified Farmer • ${user?.location || 'Kenya'}`}
                             size="small"
                             sx={{
-                                mb: 1.5,
-                                bgcolor: 'rgba(255,255,255,0.2)',
+                                mb: 0.75,
+                                bgcolor: 'rgba(255,255,255,0.18)',
                                 color: 'white',
                                 backdropFilter: 'blur(4px)',
                                 border: '1px solid rgba(255,255,255,0.3)',
-                                fontWeight: 600
+                                fontWeight: 600,
                             }}
                         />
-                        <Typography variant="h3" fontWeight={800} color="white" sx={{ textShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>
-                            Overview
-                        </Typography>
-                        <Typography variant="h6" sx={{ color: 'rgba(255,255,255,0.9)', fontWeight: 400 }}>
+                        <Typography
+                            variant="h5"
+                            fontWeight={800}
+                            color="white"
+                            sx={{ textShadow: '0 2px 10px rgba(0,0,0,0.25)', lineHeight: 1.2 }}
+                        >
                             Welcome back, {user?.name?.split(' ')[0]}
                         </Typography>
                     </Box>
 
+                    {/* Right: action buttons */}
                     <Box sx={{ display: 'flex', gap: 2 }}>
                         <Button
                             variant="outlined"
@@ -126,8 +140,8 @@ const Dashboard = () => {
                                 backdropFilter: 'blur(4px)',
                                 '&:hover': {
                                     bgcolor: 'rgba(255,255,255,0.2)',
-                                    borderColor: 'white'
-                                }
+                                    borderColor: 'white',
+                                },
                             }}
                         >
                             Upload Crops
@@ -140,7 +154,7 @@ const Dashboard = () => {
                             sx={{
                                 boxShadow: '0 4px 14px rgba(255, 215, 0, 0.4)',
                                 color: 'primary.dark',
-                                fontWeight: 700
+                                fontWeight: 700,
                             }}
                         >
                             New Listing
@@ -148,123 +162,358 @@ const Dashboard = () => {
                     </Box>
                 </Box>
 
-                {/* Stats Grid */}
-                <Grid container spacing={3} sx={{ mb: 5 }}>
-                    <Grid item xs={12} sm={6} lg={3}>
-                        <StatCard
-                            title="Total Revenue"
-                            value={`KES ${balance.toLocaleString()}`}
-                            icon={<AccountBalanceWallet />}
-                            color="success"
-                            trend="+12%"
-                            trendLabel="vs last month"
-                            loading={loading}
-                        />
-                    </Grid>
-                    <Grid item xs={12} sm={6} lg={3}>
-                        <StatCard
-                            title="Credit Score"
-                            value={user?.creditScore || 720}
-                            icon={<TrendingUp />}
-                            color={user?.creditScore >= 700 ? 'success' : 'warning'}
-                            subtitle="Excellent Standing"
-                            loading={loading}
-                        />
-                    </Grid>
-                    <Grid item xs={12} sm={6} lg={3}>
-                        <StatCard
-                            title="Active Loans"
-                            value={activeLoans.length}
-                            icon={<MonetizationOn />}
-                            color="warning"
-                            subtitle={pendingLoans.length > 0 ? `${pendingLoans.length} pending approval` : 'No pending loans'}
-                            loading={loading}
-                            onClick={() => navigate('/farmer/loans')}
-                            actionLabel="View Details"
-                        />
-                    </Grid>
-                    <Grid item xs={12} sm={6} lg={3}>
-                        <StatCard
-                            title="Active Listings"
-                            value={activeListings.length}
-                            icon={<Inventory />}
-                            color="info"
-                            subtitle={`${listings.filter(l => l.status === 'SOLD').length} completed sales`}
-                            loading={loading}
-                            onClick={() => navigate('/farmer/listings')}
-                            actionLabel="Manage Stock"
-                        />
-                    </Grid>
-                </Grid>
+                {/* ── Overview Stats – 3D Floating Container ── */}
+                <Paper
+                    elevation={0}
+                    sx={{
+                        mb: 5,
+                        borderRadius: 3,
+                        overflow: 'hidden',
+                        background: 'rgba(255,255,255,0.97)',
+                        boxShadow:
+                            '0 2px 0 rgba(255,255,255,0.6) inset, 0 16px 48px rgba(0,0,0,0.16), 0 4px 12px rgba(0,0,0,0.10)',
+                        border: '1px solid rgba(255,255,255,0.85)',
+                        backdropFilter: 'blur(24px)',
+                    }}
+                >
+                    {/* Section header */}
+                    <Box
+                        sx={{
+                            px: 3,
+                            py: 2,
+                            borderBottom: '1px solid',
+                            borderColor: 'divider',
+                            bgcolor: 'rgba(0,0,0,0.015)',
+                        }}
+                    >
+                        <Typography variant="h6" fontWeight={800} color="text.primary">
+                            Overview
+                        </Typography>
+                    </Box>
 
-                {/* Main Content Areas */}
-                <Grid container spacing={4}>
-                    {/* Quick Actions Panel */}
-                    <Grid item xs={12}>
-                        <Paper className="glass-card" sx={{ p: 4, borderRadius: 4 }}>
-                            <Typography variant="h6" fontWeight={800} gutterBottom color="primary.dark" sx={{ mb: 3 }}>
+                    {/* Stats as vertical rows */}
+                    {loading ? (
+                        <Box sx={{ p: 3 }}>
+                            {[1, 2, 3, 4].map((i) => (
+                                <Skeleton key={i} height={72} sx={{ mb: 1.5, borderRadius: 2 }} />
+                            ))}
+                        </Box>
+                    ) : (
+                        <Box>
+                            {/* Row 1 – Total Revenue */}
+                            <Box
+                                sx={{
+                                    px: 3,
+                                    py: 2,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 2.5,
+                                    borderBottom: '1px solid',
+                                    borderColor: 'divider',
+                                }}
+                            >
+                                <Avatar
+                                    variant="rounded"
+                                    sx={{
+                                        bgcolor: alpha(theme.palette.success.main, 0.1),
+                                        color: 'success.main',
+                                        width: 44,
+                                        height: 44,
+                                        borderRadius: 2,
+                                        flexShrink: 0,
+                                    }}
+                                >
+                                    <AccountBalanceWallet />
+                                </Avatar>
+                                <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: { xs: 0, sm: 2 } }}>
+                                    <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ textTransform: 'uppercase', letterSpacing: 0.5, minWidth: 110 }}>
+                                        Total Revenue
+                                    </Typography>
+                                    <Typography variant="subtitle1" fontWeight={800} color="text.primary" sx={{ lineHeight: 1 }}>
+                                        KES {balance.toLocaleString()}
+                                    </Typography>
+                                    <Typography variant="caption" sx={{ color: 'success.main', fontWeight: 700, ml: { xs: 0, sm: 'auto' } }}>
+                                        +12% vs last month
+                                    </Typography>
+                                </Box>
+                            </Box>
+
+                            {/* Row 2 – Credit Score */}
+                            <Box
+                                sx={{
+                                    px: 3,
+                                    py: 2,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 2.5,
+                                    borderBottom: '1px solid',
+                                    borderColor: 'divider',
+                                }}
+                            >
+                                <Avatar
+                                    variant="rounded"
+                                    sx={{
+                                        bgcolor: alpha(
+                                            (user?.creditScore >= 700 ? theme.palette.success : theme.palette.warning).main,
+                                            0.1
+                                        ),
+                                        color: user?.creditScore >= 700 ? 'success.main' : 'warning.main',
+                                        width: 44,
+                                        height: 44,
+                                        borderRadius: 2,
+                                        flexShrink: 0,
+                                    }}
+                                >
+                                    <TrendingUp />
+                                </Avatar>
+                                <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: { xs: 0, sm: 2 } }}>
+                                    <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ textTransform: 'uppercase', letterSpacing: 0.5, minWidth: 110 }}>
+                                        Credit Score
+                                    </Typography>
+                                    <Typography variant="subtitle1" fontWeight={800} color="text.primary" sx={{ lineHeight: 1 }}>
+                                        {user?.creditScore || 720}
+                                    </Typography>
+                                    <Typography variant="caption" color="text.secondary" sx={{ ml: { xs: 0, sm: 'auto' } }}>
+                                        Excellent Standing
+                                    </Typography>
+                                </Box>
+                            </Box>
+
+                            {/* Row 3 – Active Loans */}
+                            <Box
+                                onClick={() => navigate('/farmer/loans')}
+                                sx={{
+                                    px: 3,
+                                    py: 2,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 2.5,
+                                    borderBottom: '1px solid',
+                                    borderColor: 'divider',
+                                    cursor: 'pointer',
+                                    transition: 'background 0.2s',
+                                    '&:hover': { bgcolor: 'rgba(0,0,0,0.02)' },
+                                }}
+                            >
+                                <Avatar
+                                    variant="rounded"
+                                    sx={{
+                                        bgcolor: alpha(theme.palette.warning.main, 0.1),
+                                        color: 'warning.main',
+                                        width: 44,
+                                        height: 44,
+                                        borderRadius: 2,
+                                        flexShrink: 0,
+                                    }}
+                                >
+                                    <MonetizationOn />
+                                </Avatar>
+                                <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: { xs: 0, sm: 2 } }}>
+                                    <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ textTransform: 'uppercase', letterSpacing: 0.5, minWidth: 110 }}>
+                                        Active Loans
+                                    </Typography>
+                                    <Typography variant="subtitle1" fontWeight={800} color="text.primary" sx={{ lineHeight: 1 }}>
+                                        {activeLoans.length}
+                                    </Typography>
+                                    <Typography variant="caption" color="text.secondary" sx={{ ml: { xs: 0, sm: 'auto' } }}>
+                                        {pendingLoans.length > 0 ? `${pendingLoans.length} pending approval` : 'No pending loans'}
+                                    </Typography>
+                                </Box>
+                                <Button size="small" endIcon={<ArrowForward />} sx={{ flexShrink: 0 }}>
+                                    View Details
+                                </Button>
+                            </Box>
+
+                            {/* Row 4 – Active Listings */}
+                            <Box
+                                onClick={() => navigate('/farmer/listings')}
+                                sx={{
+                                    px: 3,
+                                    py: 2,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 2.5,
+                                    cursor: 'pointer',
+                                    transition: 'background 0.2s',
+                                    '&:hover': { bgcolor: 'rgba(0,0,0,0.02)' },
+                                }}
+                            >
+                                <Avatar
+                                    variant="rounded"
+                                    sx={{
+                                        bgcolor: alpha(theme.palette.info.main, 0.1),
+                                        color: 'info.main',
+                                        width: 44,
+                                        height: 44,
+                                        borderRadius: 2,
+                                        flexShrink: 0,
+                                    }}
+                                >
+                                    <Inventory />
+                                </Avatar>
+                                <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: { xs: 0, sm: 2 } }}>
+                                    <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ textTransform: 'uppercase', letterSpacing: 0.5, minWidth: 110 }}>
+                                        Active Listings
+                                    </Typography>
+                                    <Typography variant="subtitle1" fontWeight={800} color="text.primary" sx={{ lineHeight: 1 }}>
+                                        {activeListings.length}
+                                    </Typography>
+                                    <Typography variant="caption" color="text.secondary" sx={{ ml: { xs: 0, sm: 'auto' } }}>
+                                        {listings.filter(l => l.status === 'SOLD').length} completed sales
+                                    </Typography>
+                                </Box>
+                                <Button size="small" endIcon={<ArrowForward />} sx={{ flexShrink: 0 }}>
+                                    Manage Stock
+                                </Button>
+                            </Box>
+                        </Box>
+                    )}
+                </Paper>
+
+                {/* ── Main Content Areas – always a single vertical column ── */}
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+
+                    {/* Quick Actions */}
+                    <Paper
+                        className="glass-card"
+                        elevation={0}
+                        sx={{ borderRadius: 3, overflow: 'hidden' }}
+                    >
+                        {/* Panel header */}
+                        <Box
+                            sx={{
+                                px: 3,
+                                py: 2,
+                                borderBottom: '1px solid',
+                                borderColor: 'divider',
+                                bgcolor: 'rgba(0,0,0,0.015)',
+                            }}
+                        >
+                            <Typography variant="h6" fontWeight={800} color="primary.dark">
                                 Quick Actions
                             </Typography>
-                            <Grid container spacing={2}>
-                                {[
-                                    { label: 'Upload Crops', desc: 'Get AI health assessment', icon: CloudUpload, path: '/farmer/upload-assessment', color: theme.palette.primary.main, bg: theme.palette.primary.light },
-                                    { label: 'Apply for Loan', desc: 'Instant credit check', icon: MonetizationOn, path: '/farmer/loan/apply', color: theme.palette.secondary.dark, bg: theme.palette.secondary.main },
-                                    { label: 'Create Listing', desc: 'Sell your produce', icon: Inventory, path: '/farmer/listing/create', color: theme.palette.info.main, bg: theme.palette.info.light },
-                                    { label: 'Marketplace', desc: 'View current prices', icon: Visibility, path: '/marketplace', color: theme.palette.success.main, bg: theme.palette.success.light }
-                                ].map((action) => (
-                                    <Grid item xs={12} sm={6} md={3} key={action.label}>
-                                        <Card
-                                            className="hover-lift"
-                                            elevation={0}
-                                            sx={{
-                                                cursor: 'pointer',
-                                                p: 2,
-                                                height: '100%',
-                                                border: '1px solid',
-                                                borderColor: 'divider',
-                                                borderRadius: 3,
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: 2,
-                                                transition: 'all 0.2s',
-                                                '&:hover': {
-                                                    borderColor: action.color,
-                                                    bgcolor: alpha(action.color, 0.04)
-                                                }
-                                            }}
-                                            onClick={() => navigate(action.path)}
-                                        >
-                                            <Avatar
-                                                variant="rounded"
-                                                sx={{
-                                                    bgcolor: alpha(action.color, 0.1),
-                                                    color: action.color,
-                                                    width: 56,
-                                                    height: 56,
-                                                    borderRadius: 2.5
-                                                }}
-                                            >
-                                                <action.icon />
-                                            </Avatar>
-                                            <Box>
-                                                <Typography variant="subtitle2" fontWeight={700} color="text.primary">
-                                                    {action.label}
-                                                </Typography>
-                                                <Typography variant="caption" color="text.secondary" fontWeight={500}>
-                                                    {action.desc}
-                                                </Typography>
-                                            </Box>
-                                        </Card>
-                                    </Grid>
-                                ))}
-                            </Grid>
-                        </Paper>
-                    </Grid>
+                        </Box>
 
-                    {/* Active Loans & Listings Split */}
-                    <Grid item xs={12} md={6}>
-                        <Paper className="glass-card" sx={{ p: 0, borderRadius: 4, height: '100%', overflow: 'hidden' }}>
-                            <Box sx={{ p: 3, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        {/* Each action: stacked on mobile, one full horizontal line on lg+ */}
+                        {[
+                            {
+                                label: 'Upload Crops',
+                                desc: 'Get AI health assessment',
+                                icon: CloudUpload,
+                                path: '/farmer/upload-assessment',
+                                color: theme.palette.primary.main,
+                            },
+                            {
+                                label: 'Apply for Loan',
+                                desc: 'Instant credit check',
+                                icon: MonetizationOn,
+                                path: '/farmer/loan/apply',
+                                color: theme.palette.secondary.dark,
+                            },
+                            {
+                                label: 'Create Listing',
+                                desc: 'Sell your produce',
+                                icon: Inventory,
+                                path: '/farmer/listing/create',
+                                color: theme.palette.info.main,
+                            },
+                            {
+                                label: 'Marketplace',
+                                desc: 'View current prices',
+                                icon: Visibility,
+                                path: '/marketplace',
+                                color: theme.palette.success.main,
+                            },
+                        ].map((action, idx, arr) => (
+                            <Box
+                                key={action.label}
+                                className="hover-lift"
+                                onClick={() => navigate(action.path)}
+                                sx={{
+                                    px: 3,
+                                    py: 2,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 2,
+                                    cursor: 'pointer',
+                                    borderBottom: idx < arr.length - 1 ? '1px solid' : 'none',
+                                    borderColor: 'divider',
+                                    transition: 'all 0.2s',
+                                    '&:hover': {
+                                        bgcolor: alpha(action.color, 0.04),
+                                        '& .qa-arrow': { transform: 'translateX(4px)', color: action.color },
+                                        '& .qa-icon': { bgcolor: alpha(action.color, 0.18) },
+                                    },
+                                }}
+                            >
+                                <Avatar
+                                    className="qa-icon"
+                                    variant="rounded"
+                                    sx={{
+                                        bgcolor: alpha(action.color, 0.1),
+                                        color: action.color,
+                                        width: 44,
+                                        height: 44,
+                                        borderRadius: 1,
+                                        transition: 'background 0.2s',
+                                        flexShrink: 0,
+                                    }}
+                                >
+                                    <action.icon fontSize="small" />
+                                </Avatar>
+
+                                {/* On mobile: label stacked above desc. On lg+: label | desc side by side */}
+                                <Box
+                                    sx={{
+                                        flex: 1,
+                                        display: 'flex',
+                                        flexDirection: { xs: 'column', sm: 'row' },
+                                        alignItems: { xs: 'flex-start', sm: 'center' },
+                                        gap: { xs: 0, sm: 1.5 },
+                                    }}
+                                >
+                                    <Typography
+                                        variant="subtitle2"
+                                        fontWeight={700}
+                                        color="text.primary"
+                                        sx={{ flexShrink: 0 }}
+                                    >
+                                        {action.label}
+                                    </Typography>
+                                    <Typography variant="caption" color="text.secondary" fontWeight={500}>
+                                        {action.desc}
+                                    </Typography>
+                                </Box>
+
+                                <ArrowForward
+                                    className="qa-arrow"
+                                    sx={{
+                                        color: 'text.disabled',
+                                        fontSize: 18,
+                                        transition: 'transform 0.2s, color 0.2s',
+                                        flexShrink: 0,
+                                    }}
+                                />
+                            </Box>
+                        ))}
+                    </Paper>
+
+                    {/* ── Active Loans ── */}
+                    <Box>
+                        <Paper
+                            className="glass-card"
+                            sx={{ p: 0, borderRadius: 4, height: '100%', overflow: 'hidden' }}
+                        >
+                            <Box
+                                sx={{
+                                    p: 3,
+                                    borderBottom: '1px solid',
+                                    borderColor: 'divider',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                }}
+                            >
                                 <Typography variant="h6" fontWeight={800} color="text.primary">
                                     Active Loans
                                 </Typography>
@@ -281,7 +530,10 @@ const Dashboard = () => {
                             ) : activeLoans.length > 0 ? (
                                 <List sx={{ px: 2 }}>
                                     {activeLoans.slice(0, 3).map((loan) => {
-                                        const progress = (loan.amountPaid / (loan.amount * (1 + loan.interestRate / 100))) * 100;
+                                        const progress =
+                                            (loan.amountPaid /
+                                                (loan.amount * (1 + loan.interestRate / 100))) *
+                                            100;
                                         return (
                                             <ListItem
                                                 key={loan.id}
@@ -290,32 +542,61 @@ const Dashboard = () => {
                                                     p: 2,
                                                     borderBottom: '1px solid',
                                                     borderColor: 'divider',
-                                                    '&:last-child': { borderBottom: 'none' }
+                                                    '&:last-child': { borderBottom: 'none' },
                                                 }}
                                             >
                                                 <ListItemAvatar>
-                                                    <Avatar variant="rounded" sx={{ bgcolor: 'warning.light', color: 'warning.dark' }}>
+                                                    <Avatar
+                                                        variant="rounded"
+                                                        sx={{ bgcolor: 'warning.light', color: 'warning.dark' }}
+                                                    >
                                                         <MonetizationOn />
                                                     </Avatar>
                                                 </ListItemAvatar>
                                                 <ListItemText
                                                     primary={
-                                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                                                            <Typography fontWeight={700}>KES {loan.amount.toLocaleString()}</Typography>
+                                                        <Box
+                                                            sx={{
+                                                                display: 'flex',
+                                                                justifyContent: 'space-between',
+                                                                mb: 0.5,
+                                                            }}
+                                                        >
+                                                            <Typography fontWeight={700}>
+                                                                KES {loan.amount.toLocaleString()}
+                                                            </Typography>
                                                             <StatusBadge status={loan.status} size="small" />
                                                         </Box>
                                                     }
                                                     secondary={
                                                         <Box>
-                                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                                                                <Typography variant="caption" color="text.secondary">Due {loan.dueDate}</Typography>
-                                                                <Typography variant="caption" fontWeight={600} color="text.primary">{Math.round(progress)}% Paid</Typography>
+                                                            <Box
+                                                                sx={{
+                                                                    display: 'flex',
+                                                                    justifyContent: 'space-between',
+                                                                    mb: 1,
+                                                                }}
+                                                            >
+                                                                <Typography variant="caption" color="text.secondary">
+                                                                    Due {loan.dueDate}
+                                                                </Typography>
+                                                                <Typography
+                                                                    variant="caption"
+                                                                    fontWeight={600}
+                                                                    color="text.primary"
+                                                                >
+                                                                    {Math.round(progress)}% Paid
+                                                                </Typography>
                                                             </Box>
                                                             <LinearProgress
                                                                 variant="determinate"
                                                                 value={progress}
                                                                 color="warning"
-                                                                sx={{ height: 6, borderRadius: 3, bgcolor: alpha(theme.palette.warning.main, 0.1) }}
+                                                                sx={{
+                                                                    height: 6,
+                                                                    borderRadius: 3,
+                                                                    bgcolor: alpha(theme.palette.warning.main, 0.1),
+                                                                }}
                                                             />
                                                         </Box>
                                                     }
@@ -335,15 +616,32 @@ const Dashboard = () => {
                                 </Box>
                             )}
                         </Paper>
-                    </Grid>
+                    </Box>
 
-                    <Grid item xs={12} md={6}>
-                        <Paper className="glass-card" sx={{ p: 0, borderRadius: 4, height: '100%', overflow: 'hidden' }}>
-                            <Box sx={{ p: 3, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    {/* ── Recent Listings ── */}
+                    <Box>
+                        <Paper
+                            className="glass-card"
+                            sx={{ p: 0, borderRadius: 4, height: '100%', overflow: 'hidden' }}
+                        >
+                            <Box
+                                sx={{
+                                    p: 3,
+                                    borderBottom: '1px solid',
+                                    borderColor: 'divider',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                }}
+                            >
                                 <Typography variant="h6" fontWeight={800} color="text.primary">
                                     Recent Listings
                                 </Typography>
-                                <Button size="small" endIcon={<ArrowForward />} onClick={() => navigate('/farmer/listings')}>
+                                <Button
+                                    size="small"
+                                    endIcon={<ArrowForward />}
+                                    onClick={() => navigate('/farmer/listings')}
+                                >
                                     View All
                                 </Button>
                             </Box>
@@ -366,7 +664,7 @@ const Dashboard = () => {
                                                 '&:last-child': { borderBottom: 'none' },
                                                 transition: 'bgcolor 0.2s',
                                                 borderRadius: 2,
-                                                '&:hover': { bgcolor: 'rgba(0,0,0,0.02)' }
+                                                '&:hover': { bgcolor: 'rgba(0,0,0,0.02)' },
                                             }}
                                             secondaryAction={
                                                 <IconButton size="small">
@@ -382,7 +680,7 @@ const Dashboard = () => {
                                                         width: 56,
                                                         height: 56,
                                                         borderRadius: 2,
-                                                        border: '1px solid rgba(0,0,0,0.1)'
+                                                        border: '1px solid rgba(0,0,0,0.1)',
                                                     }}
                                                 />
                                             </ListItemAvatar>
@@ -394,8 +692,21 @@ const Dashboard = () => {
                                                 }
                                                 secondary={
                                                     <Box>
-                                                        <Typography variant="caption" color="text.secondary" display="block">
-                                                            {listing.quantity} {listing.unit} • <span style={{ color: theme.palette.success.main, fontWeight: 700 }}>KES {listing.pricePerUnit}</span>/{listing.unit}
+                                                        <Typography
+                                                            variant="caption"
+                                                            color="text.secondary"
+                                                            display="block"
+                                                        >
+                                                            {listing.quantity} {listing.unit} •{' '}
+                                                            <span
+                                                                style={{
+                                                                    color: theme.palette.success.main,
+                                                                    fontWeight: 700,
+                                                                }}
+                                                            >
+                                                                KES {listing.pricePerUnit}
+                                                            </span>
+                                                            /{listing.unit}
                                                         </Typography>
                                                         <Box sx={{ mt: 0.5 }}>
                                                             <StatusBadge status={listing.status} size="small" />
@@ -417,8 +728,9 @@ const Dashboard = () => {
                                 </Box>
                             )}
                         </Paper>
-                    </Grid>
-                </Grid>
+                    </Box>
+
+                </Box> {/* end flex column */}
             </Box>
         </PageBackground>
     );
