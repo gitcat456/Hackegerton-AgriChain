@@ -10,14 +10,14 @@ import {
     ListItemText,
     ListItemAvatar,
     Avatar,
-    Divider,
     Card,
     CardContent,
     LinearProgress,
     Chip,
-    IconButton,
-    Tooltip,
-    Skeleton
+    Skeleton,
+    alpha,
+    useTheme,
+    IconButton
 } from '@mui/material';
 import {
     AccountBalanceWallet,
@@ -29,7 +29,8 @@ import {
     Add,
     Visibility,
     Assessment,
-    LocalShipping
+    LocalShipping,
+    MoreVert
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import StatCard from '../common/StatCard';
@@ -42,6 +43,7 @@ import { mockApi } from '../../data/mockApi';
 
 const Dashboard = () => {
     const navigate = useNavigate();
+    const theme = useTheme();
     const { user } = useAuth();
     const { balance } = useWallet();
     const [loans, setLoans] = useState([]);
@@ -76,480 +78,343 @@ const Dashboard = () => {
 
     const activeLoans = loans.filter(l => l.status === 'ACTIVE' || l.status === 'APPROVED');
     const pendingLoans = loans.filter(l => l.status === 'PENDING');
-    const totalLoanDebt = activeLoans.reduce((acc, l) => acc + (l.amount - l.amountPaid), 0);
     const activeListings = listings.filter(l => l.status === 'ACTIVE');
     const pendingOrders = orders.filter(o => o.status !== 'COMPLETED');
 
-    // Calculate credit score gauge percentage (assuming max 850)
-    const creditScorePercentage = ((user?.creditScore || 0) / 850) * 100;
-
     return (
         <PageBackground type="farmer">
-            <Box>
-                {/* Header Card */}
-                <Paper
-                    elevation={0}
-                    sx={{
-                        p: 3,
-                        mb: 4,
-                        borderRadius: 3,
-                        background: 'rgba(255,255,255,0.85)',
-                        backdropFilter: 'blur(10px)',
-                        border: '1px solid rgba(255,255,255,0.5)'
-                    }}
-                >
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 2 }}>
-                        <Box>
-                            <Typography variant="h4" fontWeight="bold" color="primary.dark">
-                                Welcome back, {user?.name?.split(' ')[0]} 👋
-                            </Typography>
-                            <Typography variant="body1" color="text.secondary" fontWeight={500}>
-                                Here's what's happening on your farm today.
-                            </Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex', gap: 2 }}>
-                            <Button
-                                variant="outlined"
-                                startIcon={<CloudUpload />}
-                                onClick={() => navigate('/farmer/upload-assessment')}
-                                sx={{ bgcolor: 'white' }}
-                            >
-                                Upload Crops
-                            </Button>
-                            <Button
-                                variant="contained"
-                                startIcon={<Add />}
-                                onClick={() => navigate('/farmer/listing/create')}
-                                sx={{ boxShadow: 2 }}
-                            >
-                                New Listing
-                            </Button>
-                        </Box>
+            <Box className="animate-fade-in-up">
+                {/* Header Section */}
+                <Box sx={{
+                    mb: 5,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-end',
+                    flexWrap: 'wrap',
+                    gap: 3
+                }}>
+                    <Box>
+                        <Chip
+                            label={`Verified Farmer • ${user?.location || 'Kenya'}`}
+                            size="small"
+                            sx={{
+                                mb: 1.5,
+                                bgcolor: 'rgba(255,255,255,0.2)',
+                                color: 'white',
+                                backdropFilter: 'blur(4px)',
+                                border: '1px solid rgba(255,255,255,0.3)',
+                                fontWeight: 600
+                            }}
+                        />
+                        <Typography variant="h3" fontWeight={800} color="white" sx={{ textShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>
+                            Overview
+                        </Typography>
+                        <Typography variant="h6" sx={{ color: 'rgba(255,255,255,0.9)', fontWeight: 400 }}>
+                            Welcome back, {user?.name?.split(' ')[0]}
+                        </Typography>
                     </Box>
-                </Paper>
+
+                    <Box sx={{ display: 'flex', gap: 2 }}>
+                        <Button
+                            variant="outlined"
+                            startIcon={<CloudUpload />}
+                            onClick={() => navigate('/farmer/upload-assessment')}
+                            sx={{
+                                bgcolor: 'rgba(255,255,255,0.1)',
+                                color: 'white',
+                                borderColor: 'rgba(255,255,255,0.4)',
+                                backdropFilter: 'blur(4px)',
+                                '&:hover': {
+                                    bgcolor: 'rgba(255,255,255,0.2)',
+                                    borderColor: 'white'
+                                }
+                            }}
+                        >
+                            Upload Crops
+                        </Button>
+                        <Button
+                            variant="contained"
+                            color="secondary"
+                            startIcon={<Add />}
+                            onClick={() => navigate('/farmer/listing/create')}
+                            sx={{
+                                boxShadow: '0 4px 14px rgba(255, 215, 0, 0.4)',
+                                color: 'primary.dark',
+                                fontWeight: 700
+                            }}
+                        >
+                            New Listing
+                        </Button>
+                    </Box>
+                </Box>
 
                 {/* Stats Grid */}
-                <Grid container spacing={3} sx={{ mb: 4 }}>
-                    <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                <Grid container spacing={3} sx={{ mb: 5 }}>
+                    <Grid item xs={12} sm={6} lg={3}>
                         <StatCard
-                            title="Wallet Balance"
+                            title="Total Revenue"
                             value={`KES ${balance.toLocaleString()}`}
                             icon={<AccountBalanceWallet />}
                             color="success"
                             trend="+12%"
-                            subtitle="this month"
+                            trendLabel="vs last month"
                             loading={loading}
                         />
                     </Grid>
-                    <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-                        <Paper sx={{ p: 3, borderRadius: 4, height: '100%', position: 'relative', overflow: 'hidden' }} elevation={2}>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                <Box>
-                                    <Typography variant="body2" color="text.secondary" fontWeight={600} sx={{ mb: 1, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                                        Credit Score
-                                    </Typography>
-                                    <Typography variant="h4" fontWeight="800" color="text.primary">
-                                        {user?.creditScore || 0}
-                                    </Typography>
-                                    <Chip
-                                        label={user?.creditScore >= 750 ? 'Excellent' : user?.creditScore >= 650 ? 'Good' : 'Fair'}
-                                        color={user?.creditScore >= 750 ? 'success' : user?.creditScore >= 650 ? 'warning' : 'error'}
-                                        size="small"
-                                        sx={{ mt: 1, fontWeight: 700 }}
-                                    />
-                                </Box>
-                                <Box sx={{ position: 'relative', width: 60, height: 60 }}>
-                                    <Avatar
-                                        variant="rounded"
-                                        sx={{
-                                            width: '100%',
-                                            height: '100%',
-                                            bgcolor: 'success.light',
-                                            color: 'success.main',
-                                            borderRadius: 3
-                                        }}
-                                    >
-                                        <TrendingUp fontSize="large" />
-                                    </Avatar>
-                                </Box>
-                            </Box>
-                        </Paper>
+                    <Grid item xs={12} sm={6} lg={3}>
+                        <StatCard
+                            title="Credit Score"
+                            value={user?.creditScore || 720}
+                            icon={<TrendingUp />}
+                            color={user?.creditScore >= 700 ? 'success' : 'warning'}
+                            subtitle="Excellent Standing"
+                            loading={loading}
+                        />
                     </Grid>
-                    <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                    <Grid item xs={12} sm={6} lg={3}>
                         <StatCard
                             title="Active Loans"
                             value={activeLoans.length}
                             icon={<MonetizationOn />}
                             color="warning"
-                            subtitle={pendingLoans.length > 0 ? `${pendingLoans.length} pending` : 'No pending'}
+                            subtitle={pendingLoans.length > 0 ? `${pendingLoans.length} pending approval` : 'No pending loans'}
                             loading={loading}
                             onClick={() => navigate('/farmer/loans')}
+                            actionLabel="View Details"
                         />
                     </Grid>
-                    <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                    <Grid item xs={12} sm={6} lg={3}>
                         <StatCard
                             title="Active Listings"
                             value={activeListings.length}
                             icon={<Inventory />}
                             color="info"
-                            subtitle={`${listings.filter(l => l.status === 'SOLD').length} sold`}
+                            subtitle={`${listings.filter(l => l.status === 'SOLD').length} completed sales`}
                             loading={loading}
                             onClick={() => navigate('/farmer/listings')}
+                            actionLabel="Manage Stock"
                         />
                     </Grid>
                 </Grid>
 
-                {/* Quick Actions Card */}
-                <Paper sx={{ p: 3, mb: 4, borderRadius: 4 }} elevation={2}>
-                    <Typography variant="h6" fontWeight="bold" gutterBottom color="primary.dark">
-                        Quick Actions
-                    </Typography>
-                    <Grid container spacing={2}>
-                        {[
-                            { label: 'Upload Crops', icon: CloudUpload, path: '/farmer/upload-assessment', color: 'primary' },
-                            { label: 'Apply for Loan', icon: MonetizationOn, path: '/farmer/loan/apply', color: 'secondary' },
-                            { label: 'Create Listing', icon: Inventory, path: '/farmer/listing/create', color: 'info' },
-                            { label: 'View Marketplace', icon: Visibility, path: '/marketplace', color: 'success' }
-                        ].map((action) => (
-                            <Grid size={{ xs: 6, sm: 3 }} key={action.label}>
-                                <Card
-                                    sx={{
-                                        cursor: 'pointer',
-                                        textAlign: 'center',
-                                        p: 3,
-                                        transition: 'all 0.3s',
-                                        height: '100%',
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        border: '1px solid',
-                                        borderColor: 'divider',
-                                        '&:hover': {
-                                            bgcolor: `${action.color}.main`,
-                                            color: 'white',
-                                            transform: 'translateY(-5px)',
-                                            boxShadow: 4,
-                                            borderColor: 'transparent'
-                                        }
-                                    }}
-                                    onClick={() => navigate(action.path)}
-                                    elevation={0}
-                                >
-                                    <action.icon sx={{ fontSize: 40, color: 'inherit', mb: 2 }} />
-                                    <Typography variant="subtitle2" fontWeight={700}>{action.label}</Typography>
-                                </Card>
+                {/* Main Content Areas */}
+                <Grid container spacing={4}>
+                    {/* Quick Actions Panel */}
+                    <Grid item xs={12}>
+                        <Paper className="glass-card" sx={{ p: 4, borderRadius: 4 }}>
+                            <Typography variant="h6" fontWeight={800} gutterBottom color="primary.dark" sx={{ mb: 3 }}>
+                                Quick Actions
+                            </Typography>
+                            <Grid container spacing={2}>
+                                {[
+                                    { label: 'Upload Crops', desc: 'Get AI health assessment', icon: CloudUpload, path: '/farmer/upload-assessment', color: theme.palette.primary.main, bg: theme.palette.primary.light },
+                                    { label: 'Apply for Loan', desc: 'Instant credit check', icon: MonetizationOn, path: '/farmer/loan/apply', color: theme.palette.secondary.dark, bg: theme.palette.secondary.main },
+                                    { label: 'Create Listing', desc: 'Sell your produce', icon: Inventory, path: '/farmer/listing/create', color: theme.palette.info.main, bg: theme.palette.info.light },
+                                    { label: 'Marketplace', desc: 'View current prices', icon: Visibility, path: '/marketplace', color: theme.palette.success.main, bg: theme.palette.success.light }
+                                ].map((action) => (
+                                    <Grid item xs={12} sm={6} md={3} key={action.label}>
+                                        <Card
+                                            className="hover-lift"
+                                            elevation={0}
+                                            sx={{
+                                                cursor: 'pointer',
+                                                p: 2,
+                                                height: '100%',
+                                                border: '1px solid',
+                                                borderColor: 'divider',
+                                                borderRadius: 3,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: 2,
+                                                transition: 'all 0.2s',
+                                                '&:hover': {
+                                                    borderColor: action.color,
+                                                    bgcolor: alpha(action.color, 0.04)
+                                                }
+                                            }}
+                                            onClick={() => navigate(action.path)}
+                                        >
+                                            <Avatar
+                                                variant="rounded"
+                                                sx={{
+                                                    bgcolor: alpha(action.color, 0.1),
+                                                    color: action.color,
+                                                    width: 56,
+                                                    height: 56,
+                                                    borderRadius: 2.5
+                                                }}
+                                            >
+                                                <action.icon />
+                                            </Avatar>
+                                            <Box>
+                                                <Typography variant="subtitle2" fontWeight={700} color="text.primary">
+                                                    {action.label}
+                                                </Typography>
+                                                <Typography variant="caption" color="text.secondary" fontWeight={500}>
+                                                    {action.desc}
+                                                </Typography>
+                                            </Box>
+                                        </Card>
+                                    </Grid>
+                                ))}
                             </Grid>
-                        ))}
+                        </Paper>
                     </Grid>
-                </Paper>
 
-                {/* Main Content Grid */}
-                <Grid container spacing={3}>
-                    {/* Active Loans */}
-                    <Grid size={{ xs: 12, md: 6 }}>
-                        <Paper sx={{ p: 3, borderRadius: 4, height: '100%' }} elevation={3}>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-                                <Typography variant="h6" fontWeight="bold">Active Loans</Typography>
-                                <Button
-                                    size="small"
-                                    endIcon={<ArrowForward />}
-                                    onClick={() => navigate('/farmer/loans')}
-                                    sx={{ fontWeight: 600 }}
-                                >
+                    {/* Active Loans & Listings Split */}
+                    <Grid item xs={12} md={6}>
+                        <Paper className="glass-card" sx={{ p: 0, borderRadius: 4, height: '100%', overflow: 'hidden' }}>
+                            <Box sx={{ p: 3, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Typography variant="h6" fontWeight={800} color="text.primary">
+                                    Active Loans
+                                </Typography>
+                                <Button size="small" endIcon={<ArrowForward />} onClick={() => navigate('/farmer/loans')}>
                                     View All
                                 </Button>
                             </Box>
 
                             {loading ? (
-                                <Box sx={{ py: 2 }}>
-                                    {[1, 2].map(i => (
-                                        <Skeleton key={i} height={80} sx={{ mb: 1, borderRadius: 2 }} />
-                                    ))}
+                                <Box sx={{ p: 3 }}>
+                                    <Skeleton height={60} sx={{ mb: 2, borderRadius: 2 }} />
+                                    <Skeleton height={60} sx={{ borderRadius: 2 }} />
                                 </Box>
                             ) : activeLoans.length > 0 ? (
-                                <List disablePadding>
-                                    {activeLoans.slice(0, 3).map((loan, index) => {
+                                <List sx={{ px: 2 }}>
+                                    {activeLoans.slice(0, 3).map((loan) => {
                                         const progress = (loan.amountPaid / (loan.amount * (1 + loan.interestRate / 100))) * 100;
                                         return (
-                                            <Box key={loan.id} sx={{ mb: 2 }}>
-                                                <ListItem
-                                                    alignItems="flex-start"
-                                                    sx={{
-                                                        px: 2,
-                                                        py: 1.5,
-                                                        bgcolor: 'background.default',
-                                                        borderRadius: 3,
-                                                        border: '1px solid',
-                                                        borderColor: 'divider'
-                                                    }}
-                                                >
-                                                    <ListItemAvatar>
-                                                        <Avatar variant="rounded" sx={{ bgcolor: 'secondary.light', color: 'secondary.dark' }}>
-                                                            <MonetizationOn />
-                                                        </Avatar>
-                                                    </ListItemAvatar>
-                                                    <ListItemText
-                                                        primary={
-                                                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
-                                                                <Typography fontWeight={700} color="text.primary">
-                                                                    KES {loan.amount.toLocaleString()}
-                                                                </Typography>
-                                                                <StatusBadge status={loan.status} size="small" />
-                                                            </Box>
-                                                        }
-                                                        secondary={
-                                                            <Box sx={{ width: '100%' }}>
-                                                                <Typography variant="body2" color="text.secondary" gutterBottom fontSize="0.8rem">
-                                                                    Due: {loan.dueDate || 'Pending'} • {loan.duration}
-                                                                </Typography>
-                                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mt: 1 }}>
-                                                                    <LinearProgress
-                                                                        variant="determinate"
-                                                                        value={progress}
-                                                                        color="secondary"
-                                                                        sx={{ flex: 1, height: 6, borderRadius: 3, bgcolor: 'secondary.main', opacity: 0.1 }}
-                                                                    />
-                                                                    <Typography variant="caption" fontWeight={700} color="text.primary">
-                                                                        {Math.round(progress)}% Paid
-                                                                    </Typography>
-                                                                </Box>
-                                                            </Box>
-                                                        }
-                                                    />
-                                                </ListItem>
-                                            </Box>
-                                        );
-                                    })}
-                                </List>
-                            ) : (
-                                <EmptyState
-                                    title="No active loans"
-                                    message="You don't have any active loans. Apply for one to get started."
-                                    action={() => navigate('/farmer/loan/apply')}
-                                    actionLabel="Apply Now"
-                                />
-                            )}
-                        </Paper>
-                    </Grid>
-
-                    {/* Recent Listings */}
-                    <Grid size={{ xs: 12, md: 6 }}>
-                        <Paper sx={{ p: 3, borderRadius: 4, height: '100%' }} elevation={3}>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-                                <Typography variant="h6" fontWeight="bold">My Listings</Typography>
-                                <Button
-                                    size="small"
-                                    endIcon={<ArrowForward />}
-                                    onClick={() => navigate('/farmer/listings')}
-                                    sx={{ fontWeight: 600 }}
-                                >
-                                    Manage
-                                </Button>
-                            </Box>
-
-                            {loading ? (
-                                <Box sx={{ py: 2 }}>
-                                    {[1, 2].map(i => (
-                                        <Skeleton key={i} height={80} sx={{ mb: 1, borderRadius: 2 }} />
-                                    ))}
-                                </Box>
-                            ) : listings.length > 0 ? (
-                                <List disablePadding>
-                                    {listings.slice(0, 3).map((listing) => (
-                                        <Box key={listing.id} sx={{ mb: 2 }}>
                                             <ListItem
-                                                alignItems="center"
+                                                key={loan.id}
+                                                disableGutters
                                                 sx={{
-                                                    px: 2,
-                                                    py: 1.5,
-                                                    bgcolor: 'background.default',
-                                                    borderRadius: 3,
-                                                    border: '1px solid',
+                                                    p: 2,
+                                                    borderBottom: '1px solid',
                                                     borderColor: 'divider',
-                                                    transition: 'transform 0.2s',
-                                                    '&:hover': { transform: 'scale(1.02)' }
+                                                    '&:last-child': { borderBottom: 'none' }
                                                 }}
                                             >
                                                 <ListItemAvatar>
-                                                    <Avatar
-                                                        src={listing.images?.[0]}
-                                                        variant="rounded"
-                                                        sx={{ width: 56, height: 56, borderRadius: 2 }}
-                                                    />
-                                                </ListItemAvatar>
-                                                <ListItemText
-                                                    primary={
-                                                        <Typography fontWeight={700} noWrap>
-                                                            {listing.productName}
-                                                        </Typography>
-                                                    }
-                                                    secondary={
-                                                        <Typography variant="body2" color="text.secondary">
-                                                            {listing.quantity} {listing.unit} • <span style={{ fontWeight: 600, color: 'var(--primary-green)' }}>KES {listing.pricePerUnit}/{listing.unit}</span>
-                                                        </Typography>
-                                                    }
-                                                />
-                                                <Box sx={{ textAlign: 'right' }}>
-                                                    <Typography variant="subtitle1" fontWeight={800} color="primary.dark">
-                                                        KES {listing.totalPrice?.toLocaleString()}
-                                                    </Typography>
-                                                    <StatusBadge status={listing.status} size="small" />
-                                                </Box>
-                                            </ListItem>
-                                        </Box>
-                                    ))}
-                                </List>
-                            ) : (
-                                <EmptyState
-                                    title="No listings yet"
-                                    message="Create your first listing to start selling."
-                                    variant="listings"
-                                    action={() => navigate('/farmer/listing/create')}
-                                    actionLabel="Create Listing"
-                                />
-                            )}
-                        </Paper>
-                    </Grid>
-
-                    {/* Recent Assessments */}
-                    <Grid size={{ xs: 12, md: 6 }}>
-                        <Paper sx={{ p: 3, borderRadius: 4 }} elevation={3}>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                                <Typography variant="h6" fontWeight="bold">Recent Assessments</Typography>
-                                <Button
-                                    size="small"
-                                    endIcon={<ArrowForward />}
-                                    onClick={() => navigate('/farmer/assessments')}
-                                    sx={{ fontWeight: 600 }}
-                                >
-                                    View All
-                                </Button>
-                            </Box>
-
-                            {assessments.length > 0 ? (
-                                <Grid container spacing={2}>
-                                    {assessments.slice(0, 3).map((assessment) => (
-                                        <Grid size={{ xs: 12 }} key={assessment.id}>
-                                            <Card
-                                                variant="outlined"
-                                                sx={{
-                                                    cursor: 'pointer',
-                                                    borderRadius: 3,
-                                                    transition: 'all 0.2s',
-                                                    border: '1px solid',
-                                                    borderColor: 'divider',
-                                                    '&:hover': {
-                                                        borderColor: 'primary.main',
-                                                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-                                                    }
-                                                }}
-                                                onClick={() => navigate(`/farmer/assessment/${assessment.id}`)}
-                                            >
-                                                <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 2, '&:last-child': { pb: 2 } }}>
-                                                    <Avatar variant="rounded" sx={{ bgcolor: 'success.light', color: 'success.main' }}>
-                                                        <Assessment />
-                                                    </Avatar>
-                                                    <Box sx={{ flex: 1 }}>
-                                                        <Typography fontWeight={700} sx={{ textTransform: 'capitalize' }}>
-                                                            {assessment.cropType}
-                                                        </Typography>
-                                                        <Typography variant="body2" color="text.secondary">
-                                                            {assessment.areaCovered} • {assessment.assessmentDate}
-                                                        </Typography>
-                                                    </Box>
-                                                    <Box textAlign="right">
-                                                        <Chip
-                                                            label={`${Math.round(assessment.healthScore * 100)}%`}
-                                                            color={assessment.healthScore >= 0.8 ? 'success' : assessment.healthScore >= 0.6 ? 'warning' : 'error'}
-                                                            size="small"
-                                                            sx={{ fontWeight: 700 }}
-                                                        />
-                                                    </Box>
-                                                </CardContent>
-                                            </Card>
-                                        </Grid>
-                                    ))}
-                                </Grid>
-                            ) : (
-                                <EmptyState
-                                    title="No assessments"
-                                    message="Upload crop photos to get AI assessments."
-                                    action={() => navigate('/farmer/upload-assessment')}
-                                    actionLabel="Upload Crops"
-                                />
-                            )}
-                        </Paper>
-                    </Grid>
-
-                    {/* Pending Orders */}
-                    <Grid size={{ xs: 12, md: 6 }}>
-                        <Paper sx={{ p: 3, borderRadius: 4 }} elevation={3}>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                                <Typography variant="h6" fontWeight="bold">Orders Received</Typography>
-                                <Button
-                                    size="small"
-                                    endIcon={<ArrowForward />}
-                                    onClick={() => navigate('/farmer/orders')}
-                                    sx={{ fontWeight: 600 }}
-                                >
-                                    View All
-                                </Button>
-                            </Box>
-
-                            {pendingOrders.length > 0 ? (
-                                <List disablePadding>
-                                    {pendingOrders.slice(0, 3).map((order) => (
-                                        <Box key={order.id} sx={{ mb: 2 }}>
-                                            <ListItem
-                                                alignItems="flex-start"
-                                                sx={{
-                                                    px: 2,
-                                                    py: 1.5,
-                                                    bgcolor: 'background.default',
-                                                    borderRadius: 3,
-                                                    border: '1px solid',
-                                                    borderColor: 'divider'
-                                                }}
-                                            >
-                                                <ListItemAvatar>
-                                                    <Avatar variant="rounded" sx={{ bgcolor: 'info.light', color: 'info.main' }}>
-                                                        <LocalShipping />
+                                                    <Avatar variant="rounded" sx={{ bgcolor: 'warning.light', color: 'warning.dark' }}>
+                                                        <MonetizationOn />
                                                     </Avatar>
                                                 </ListItemAvatar>
                                                 <ListItemText
                                                     primary={
-                                                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
-                                                            <Typography fontWeight={700}>
-                                                                {order.productName}
-                                                            </Typography>
-                                                            <StatusBadge status={order.status} size="small" />
+                                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                                                            <Typography fontWeight={700}>KES {loan.amount.toLocaleString()}</Typography>
+                                                            <StatusBadge status={loan.status} size="small" />
                                                         </Box>
                                                     }
                                                     secondary={
                                                         <Box>
-                                                            <Typography variant="body2" color="text.secondary">
-                                                                {order.quantity} {order.unit} • {order.buyerName}
-                                                            </Typography>
-                                                            <Box sx={{ mt: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                                <Typography fontWeight={700} color="primary.main">
-                                                                    KES {order.totalAmount?.toLocaleString()}
-                                                                </Typography>
-                                                                <StatusBadge status={order.escrowStatus} size="small" />
+                                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                                                                <Typography variant="caption" color="text.secondary">Due {loan.dueDate}</Typography>
+                                                                <Typography variant="caption" fontWeight={600} color="text.primary">{Math.round(progress)}% Paid</Typography>
                                                             </Box>
+                                                            <LinearProgress
+                                                                variant="determinate"
+                                                                value={progress}
+                                                                color="warning"
+                                                                sx={{ height: 6, borderRadius: 3, bgcolor: alpha(theme.palette.warning.main, 0.1) }}
+                                                            />
                                                         </Box>
                                                     }
                                                 />
                                             </ListItem>
-                                        </Box>
+                                        );
+                                    })}
+                                </List>
+                            ) : (
+                                <Box sx={{ p: 4, textAlign: 'center' }}>
+                                    <EmptyState
+                                        title="No active loans"
+                                        message="You don't have any active loans."
+                                        action={() => navigate('/farmer/loan/apply')}
+                                        actionLabel="Apply Now"
+                                    />
+                                </Box>
+                            )}
+                        </Paper>
+                    </Grid>
+
+                    <Grid item xs={12} md={6}>
+                        <Paper className="glass-card" sx={{ p: 0, borderRadius: 4, height: '100%', overflow: 'hidden' }}>
+                            <Box sx={{ p: 3, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Typography variant="h6" fontWeight={800} color="text.primary">
+                                    Recent Listings
+                                </Typography>
+                                <Button size="small" endIcon={<ArrowForward />} onClick={() => navigate('/farmer/listings')}>
+                                    View All
+                                </Button>
+                            </Box>
+
+                            {loading ? (
+                                <Box sx={{ p: 3 }}>
+                                    <Skeleton height={60} sx={{ mb: 2, borderRadius: 2 }} />
+                                    <Skeleton height={60} sx={{ borderRadius: 2 }} />
+                                </Box>
+                            ) : listings.length > 0 ? (
+                                <List sx={{ px: 2 }}>
+                                    {listings.slice(0, 3).map((listing) => (
+                                        <ListItem
+                                            key={listing.id}
+                                            disableGutters
+                                            sx={{
+                                                p: 2,
+                                                borderBottom: '1px solid',
+                                                borderColor: 'divider',
+                                                '&:last-child': { borderBottom: 'none' },
+                                                transition: 'bgcolor 0.2s',
+                                                borderRadius: 2,
+                                                '&:hover': { bgcolor: 'rgba(0,0,0,0.02)' }
+                                            }}
+                                            secondaryAction={
+                                                <IconButton size="small">
+                                                    <MoreVert />
+                                                </IconButton>
+                                            }
+                                        >
+                                            <ListItemAvatar>
+                                                <Avatar
+                                                    src={listing.images?.[0]}
+                                                    variant="rounded"
+                                                    sx={{
+                                                        width: 56,
+                                                        height: 56,
+                                                        borderRadius: 2,
+                                                        border: '1px solid rgba(0,0,0,0.1)'
+                                                    }}
+                                                />
+                                            </ListItemAvatar>
+                                            <ListItemText
+                                                primary={
+                                                    <Typography fontWeight={700} noWrap sx={{ maxWidth: 200 }}>
+                                                        {listing.productName}
+                                                    </Typography>
+                                                }
+                                                secondary={
+                                                    <Box>
+                                                        <Typography variant="caption" color="text.secondary" display="block">
+                                                            {listing.quantity} {listing.unit} • <span style={{ color: theme.palette.success.main, fontWeight: 700 }}>KES {listing.pricePerUnit}</span>/{listing.unit}
+                                                        </Typography>
+                                                        <Box sx={{ mt: 0.5 }}>
+                                                            <StatusBadge status={listing.status} size="small" />
+                                                        </Box>
+                                                    </Box>
+                                                }
+                                            />
+                                        </ListItem>
                                     ))}
                                 </List>
                             ) : (
-                                <EmptyState
-                                    title="No pending orders"
-                                    message="Orders from buyers will appear here."
-                                    variant="orders"
-                                />
+                                <Box sx={{ p: 4 }}>
+                                    <EmptyState
+                                        title="No listings yet"
+                                        message="Create your first listing to start selling."
+                                        action={() => navigate('/farmer/listing/create')}
+                                        actionLabel="Create Listing"
+                                    />
+                                </Box>
                             )}
                         </Paper>
                     </Grid>
