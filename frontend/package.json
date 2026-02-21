@@ -1,6 +1,7 @@
 {
-  "name": "frontend",
+  "name": "Agri-Chain",
   "private": true,
+  "Author": "The Hybrid team",
   "version": "0.0.0",
   "type": "module",
   "scripts": {
