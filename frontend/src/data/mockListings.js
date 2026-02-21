@@ -12,8 +12,7 @@ export const mockListings = [
         assessmentId: 'A001',
         healthBadge: 0.87,
         images: [
-            'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=400&h=300&fit=crop',
-            'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=400&h=300&fit=crop'
+            'https://plus.unsplash.com/premium_photo-1753983551415-ff1d41b67ed4?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
         ],
         status: 'ACTIVE',
         listedDate: '2024-02-06',
@@ -88,7 +87,7 @@ export const mockListings = [
     {
         id: 'P005',
         farmerId: 'F001',
-        productName: 'Yellow Maize - Feed Grade',
+        productName: 'Yellow Maize',
         cropType: 'Maize',
         quantity: 400,
         unit: 'kg',
@@ -97,7 +96,7 @@ export const mockListings = [
         assessmentId: 'A001',
         healthBadge: 0.85,
         images: [
-            'https://images.unsplash.com/photo-1560493676-04071c5f467b?w=400&h=300&fit=crop'
+            'https://images.unsplash.com/photo-1651667343153-6dc318e27e41?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjJ8fHllbGxvdyUyMG1haXplfGVufDB8fDB8fHww'
         ],
         status: 'ACTIVE',
         listedDate: '2024-02-07',

@@ -8,8 +8,8 @@ export const mockAssessments = [
         yieldEstimate: 'High',
         riskLevel: 'Low',
         images: [
-            'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=400&h=300&fit=crop',
-            'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=400&h=300&fit=crop',
+            'https://images.unsplash.com/photo-1554402100-8d1d9f3dff80?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+            'https://images.unsplash.com/photo-1701326786998-3688beceadda?q=80&w=774&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
             'https://images.unsplash.com/photo-1560493676-04071c5f467b?w=400&h=300&fit=crop'
         ],
         assessmentDate: '2024-02-01',
@@ -29,7 +29,9 @@ export const mockAssessments = [
         yieldEstimate: 'Medium',
         riskLevel: 'Medium',
         images: [
-            'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&h=300&fit=crop'
+            'https://images.unsplash.com/photo-1700573230908-c655e1e7c27f?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8YmVhbnMlMjBwbGFudHxlbnwwfHwwfHx8MA%3D%3D',
+            'https://images.unsplash.com/photo-1472141521881-95d0e87e2e39?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGxlZ3VtZXN8ZW58MHx8MHx8fDA%3D', 
+            'https://images.unsplash.com/photo-1513868853742-e7fb786265db?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTR8fGJlYW5zfGVufDB8fDB8fHww'
         ],
         assessmentDate: '2023-11-15',
         areaCovered: '0.5 acres',
@@ -48,8 +50,8 @@ export const mockAssessments = [
         yieldEstimate: 'High',
         riskLevel: 'Low',
         images: [
-            'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=400&h=300&fit=crop',
-            'https://images.unsplash.com/photo-1530509615520-3fdb3c8f4c7a?w=400&h=300&fit=crop'
+            'https://plus.unsplash.com/premium_photo-1753983551415-ff1d41b67ed4?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+            'https://images.unsplash.com/photo-1701326786998-3688beceadda?q=80&w=774&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
         ],
         assessmentDate: '2024-01-20',
         areaCovered: '4.0 acres',

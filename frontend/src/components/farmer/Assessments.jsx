@@ -139,7 +139,7 @@ const Assessments = () => {
                                     <CardMedia
                                         component="img"
                                         height="140"
-                                        image={assessment.images?.[0] || 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=400&h=200&fit=crop'}
+                                        image={assessment.images?.[0] || 'https://unsplash.com/photos/green-corn-plant-Q_MJjEN14uk/download?force=true&w=640'}
                                         alt={assessment.cropType}
                                     />
                                     <CardContent>
